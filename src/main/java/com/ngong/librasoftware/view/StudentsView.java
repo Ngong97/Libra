@@ -54,6 +54,7 @@ public class StudentsView extends VBox {
     private TableView<StudentRecord> table;
 
     public StudentsView(Pane contentArea) {
+        System.out.println("Made some changes");
         this.setPadding(new Insets(20));
         this.setSpacing(10);
         this.contentArea = contentArea;
