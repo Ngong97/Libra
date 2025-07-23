@@ -1,0 +1,321 @@
+package com.ngong.librasoftware.Controller;
+
+import com.ngong.librasoftware.DAO.DatabaseService;
+import com.ngong.librasoftware.model.PendingBook;
+import com.ngong.librasoftware.utils.TransientMessage;
+import com.ngong.librasoftware.view.*;
+import javafx.animation.FadeTransition;
+import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.concurrent.Task;
+import javafx.geometry.Pos;
+import javafx.scene.Cursor;
+import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.stage.Stage;
+import javafx.util.Duration;
+
+import java.util.List;
+
+public class DashboardApp extends Application {
+    private final DatabaseService db = new DatabaseService();
+
+    private VBox navMenu;
+    private VBox sidebar;
+    public StackPane contentArea;
+
+    @Override
+    public void start(Stage primaryStage) {
+        contentArea = new StackPane();
+        BorderPane root = new BorderPane();
+        root.setCenter(contentArea);
+        contentArea.getChildren().setAll(new DashboardView(contentArea));
+
+
+
+
+
+        //logging ...........
+
+        Button toggleBtn = new Button("☰");
+        toggleBtn.getStyleClass().add("toggle-button");
+        toggleBtn.setCursor(Cursor.HAND);
+
+        // Create nav buttons with icons and hover labels
+        Button dashboardBtn = createNavButton("Dashboard", "/images/dashboard.png");
+        Button booksBtn = createNavButton("Inventory", "/images/books2.png");
+        Button studentsBtn = createNavButton("Students", "/images/reading.png");
+        Button checkoutBtn = createNavButton("Hand book out", "/images/book-out.png");
+        Button statsBtn = createNavButton("Statistics", "/images/statistics.png");
+        Button settingsBtn = createNavButton("Settings", "/images/setting.png");
+        Button aboutBtn = createNavButton("About", "/images/aboutus.png");
+        Button reportBtn = createNavButton("Make Report", "/images/report.png");
+
+        List<Button> navButtons = List.of(dashboardBtn, booksBtn, studentsBtn,checkoutBtn, statsBtn, settingsBtn, aboutBtn,reportBtn);
+
+        // Assign actions
+        reportBtn.setOnAction(e -> {
+            contentArea.getChildren().setAll(new ReportView());
+            setSelectedNav(reportBtn, navButtons);
+        });
+
+        dashboardBtn.setOnAction(e -> {
+            contentArea.getChildren().setAll(new DashboardView(contentArea));
+            setSelectedNav(dashboardBtn, navButtons);
+        });
+
+        booksBtn.setOnAction(e -> {
+            contentArea.getChildren().setAll(new BooksView(contentArea));
+            setSelectedNav(booksBtn, navButtons);
+        });
+
+        studentsBtn.setOnAction(e -> {
+            contentArea.getChildren().setAll(new StudentsView(contentArea));
+            setSelectedNav(studentsBtn, navButtons);
+        });
+
+
+        checkoutBtn.setOnAction(e -> {
+            contentArea.getChildren().setAll(new CheckOutView(contentArea));
+            setSelectedNav(checkoutBtn, navButtons);
+        });
+
+
+        statsBtn.setOnAction(e -> {
+            contentArea.getChildren().setAll(new StatisticsView());
+            setSelectedNav(statsBtn, navButtons);
+        });
+
+        settingsBtn.setOnAction(e -> {
+            contentArea.getChildren().setAll(new SettingsView());
+            setSelectedNav(settingsBtn, navButtons);
+        });
+
+        aboutBtn.setOnAction(e -> {
+            contentArea.getChildren().setAll(new AboutView());
+            setSelectedNav(aboutBtn, navButtons);
+        });
+
+
+        DropShadow blueShadow = new DropShadow();
+        blueShadow.setOffsetY(2.0);
+        blueShadow.setColor(Color.BLUE); // Set shadow color and transparency
+
+
+
+        for (Button button : navButtons) {
+            button.setOnMouseEntered(event -> {
+                button.setEffect(blueShadow);
+            });
+            button.setOnMouseExited(event -> {
+                button.setEffect(null);
+            });
+        }
+
+        Button logout=new Button("Logout");
+
+        logout.setOnAction(e -> {
+//            contentArea.getChildren().setAll(new AboutView());
+//            setSelectedNav(aboutBtn, navButtons);
+            primaryStage.close();
+            Stage registerstage=new Stage();
+            LoginWindow loginWindow = new LoginWindow();
+            loginWindow.start(registerstage);
+        });
+
+        // Sidebar layout
+        navMenu = new VBox(10, dashboardBtn, booksBtn, studentsBtn, checkoutBtn,statsBtn, settingsBtn,reportBtn, aboutBtn,logout);
+        navMenu.setVisible(true);
+        navMenu.setManaged(true);
+
+        sidebar = new VBox(10, toggleBtn, navMenu);
+        sidebar.setPrefWidth(130);
+        sidebar.setMinWidth(50);
+        sidebar.setId("sidebar");
+
+        toggleBtn.setOnAction(e -> {
+            boolean isCollapsed = sidebar.getPrefWidth() > 50;
+            sidebar.setPrefWidth(isCollapsed ? 50 : 130);
+            if (isCollapsed) {
+                fadeOut(navMenu, Duration.millis(300));
+            } else {
+                fadeIn(navMenu, Duration.millis(300));
+            }
+        });
+
+        root.setLeft(sidebar);
+        HBox.setHgrow(contentArea, Priority.ALWAYS);
+
+        Scene scene = new Scene(root, 1200, 700);
+        scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
+
+        primaryStage.setScene(scene);
+        primaryStage.setTitle("Libra Library System");
+        primaryStage.show();
+
+        Platform.runLater(() -> {
+            List<PendingBook> pendingBooks = db.getPendingBooks();
+
+            if (!pendingBooks.isEmpty()) {
+                if (db.isConnectedToInternet()) {
+                    syncPendingDescriptions(); // Background metadata recovery
+                } else {
+                    String hint = buildMissingListSummary(pendingBooks);
+
+                    TransientMessage msg = new TransientMessage(
+                            hint,
+                            Duration.seconds(5),
+                            contentArea // Your layout container
+                    );
+
+                    contentArea.getChildren().add(msg);
+                    StackPane.setAlignment(msg, Pos.CENTER);
+                }
+            }
+        });
+
+
+    }
+
+    public String buildMissingListSummary(List<PendingBook> books) {
+        StringBuilder sb = new StringBuilder("📡 Connect to internet to load descriptions:\n");
+        int max = Math.min(3, books.size());
+
+        int count=0;
+        for (int i = 0; i < max; i++) {
+            count++;
+            sb.append(count+". ")
+                    .append(books.get(i).title())
+                    .append(" — ")
+                    .append(books.get(i).author())
+                    .append("\n");
+        }
+
+        if (books.size() > max) {
+            sb.append("...and ").append(books.size() - max).append(" more.");
+        }
+
+        return sb.toString().trim();
+    }
+
+
+    public void syncPendingDescriptions() {
+        if (!db.isConnectedToInternet()) return;
+
+        HBox loader = showSyncLoader("Syncing book descriptions...");
+
+        Task<Void> syncTask = new Task<>() {
+            @Override
+            protected Void call() {
+                List<PendingBook> pendingBooks = db.getPendingBooks();
+
+                for (PendingBook book : pendingBooks) {
+                    String desc = db.fetchBookDescription(book.title(), book.author());
+                    boolean hasValidDesc = desc != null && !desc.isBlank() && !desc.equals("No description found");
+
+                    if (hasValidDesc) {
+                        db.updateBookDescription(book.title(), book.author(), desc);
+                        db.removeFromPending(book.title(), book.author());
+                    } else {
+                        db.incrementRetryCount(book.title(), book.author());
+                        if (book.retryCount() >= 2) {
+                            db.updateBookDescription(book.title(), book.author(), "No description found");
+                            db.removeFromPending(book.title(), book.author());
+                        }
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            protected void succeeded() {
+                contentArea.getChildren().remove(loader);
+                TransientMessage doneMsg = new TransientMessage("✅ Book descriptions synced.", Duration.seconds(3), contentArea);
+                contentArea.getChildren().add(doneMsg);
+                StackPane.setAlignment(doneMsg, Pos.CENTER);
+            }
+        };
+
+        new Thread(syncTask).start();
+    }
+
+
+
+    private HBox showSyncLoader(String message) {
+        ProgressIndicator spinner = new ProgressIndicator();
+        spinner.setPrefSize(70, 70);
+
+        Label label = new Label(message);
+        label.getStyleClass().add("sync-label");
+
+        HBox loaderBox = new HBox(8, spinner, label);
+        loaderBox.setAlignment(Pos.CENTER);
+        loaderBox.setStyle("-fx-background-color: rgba(0,0,0,0.07); -fx-padding: 6 12; -fx-background-radius: 8;");
+        loaderBox.setId("sync-loader");
+
+        StackPane.setAlignment(loaderBox, Pos.TOP_CENTER);
+        contentArea.getChildren().add(loaderBox);
+
+        return loaderBox;
+    }
+
+    private Button createNavButton(String labelText, String iconPath) {
+        ImageView icon = new ImageView(new Image(getClass().getResource(iconPath).toExternalForm()));
+        icon.setFitWidth(35);
+        icon.setFitHeight(35);
+
+        Button button = new Button();
+        button.setGraphic(icon);
+        button.setStyle("-fx-background-color: transparent;");
+        button.setCursor(Cursor.HAND);
+        button.getStyleClass().add("nav-button");
+
+
+
+
+        Tooltip tooltip = new Tooltip(labelText);
+        tooltip.getStyleClass().add("nav-tooltip");
+        tooltip.setShowDelay(Duration.millis(100));
+        tooltip.setHideDelay(Duration.millis(100));
+        Tooltip.install(button, tooltip);
+
+        return button;
+    }
+
+
+    private void setSelectedNav(Button selected, List<Button> allButtons) {
+        allButtons.forEach(btn -> btn.getStyleClass().remove("selected"));
+        selected.getStyleClass().add("selected");
+    }
+
+    private void fadeIn(Node node, Duration duration) {
+        node.setVisible(true);
+        node.setManaged(true);
+        node.setOpacity(0);
+        FadeTransition fade = new FadeTransition(duration, node);
+        fade.setFromValue(0);
+        fade.setToValue(1);
+        fade.play();
+    }
+
+    private void fadeOut(Node node, Duration duration) {
+        FadeTransition fade = new FadeTransition(duration, node);
+        fade.setFromValue(1);
+        fade.setToValue(0);
+        fade.setOnFinished(e -> {
+            node.setVisible(false);
+            node.setManaged(false);
+        });
+        fade.play();
+    }
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+}

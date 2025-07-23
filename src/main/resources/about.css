@@ -1,0 +1,80 @@
+.about-root {
+    -fx-background-color: linear-gradient(to bottom right, #f3f7fc, #ffffff);
+    -fx-font-family: "Segoe UI", sans-serif;
+}
+
+.about-scroll {
+    -fx-background-color: transparent;
+}
+
+.about-heading {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2a2a2a;
+    -fx-alignment: center;
+}
+
+.section-title {
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #3c5a99;
+    -fx-padding: 10 0 5 0;
+}
+
+.section-text {
+    -fx-font-size: 14px;
+    -fx-text-fill: #333;
+    -fx-line-spacing: 3px;
+}
+
+.section-box {
+    -fx-background-color: #fdfdfd;
+    -fx-padding: 15;
+    -fx-background-radius: 10;
+    -fx-border-color: #dbe2ec;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 6, 0, 0, 2);
+}
+
+.slideshow-image {
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 8, 0, 0, 2);
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+}
+
+.slideshow-caption {
+    -fx-font-size: 13px;
+    -fx-font-style: italic;
+    -fx-text-fill: #444;
+}
+
+.about-footer {
+    -fx-font-size: 12px;
+    -fx-text-fill: #888;
+    -fx-padding: 20 0 0 0;
+    -fx-alignment: center;
+}
+
+.button {
+    -fx-background-color: #e7ecf3;
+    -fx-text-fill: #294172;
+    -fx-font-size: 13px;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-background-color: #cfdcec;
+}
+.hyper-label {
+    -fx-text-fill: #1976D2; /* vibrant link blue */
+    -fx-underline: true;
+    -fx-cursor: hand;       /* pointer on hover */
+}
+
+.hyper-label:hover {
+    -fx-text-fill: #1565C0; /* darker blue on hover */
+}
