@@ -70,7 +70,7 @@ public class CheckOutView extends HBox {
 
     public CheckOutView(Pane contentArea) {
 
-
+        bookList.setMaxHeight(300);
         titleClickBox.setStyle("""
             -fx-background-color: white;
             -fx-border-color: #ccc;
@@ -715,7 +715,7 @@ public class CheckOutView extends HBox {
         });
 
 
-        TextField duration = new TextField();
+        TextField duration = new TextField("1");
         duration.setPromptText("0 days");
         duration.getStyleClass().add("settings-textfield");
 
@@ -738,7 +738,7 @@ public class CheckOutView extends HBox {
                 if (currentValue > 14) {
                     duration.setStyle("-fx-border-color: #e11111; -fx-border-width: 2px;");
                     WarningMessage msg = new WarningMessage(
-                            "Isn't that too long to borrow a book?",
+                            "Isn't that a lot of days?",
                             Duration.seconds(5),
                             contentArea
                     );
@@ -847,7 +847,31 @@ public class CheckOutView extends HBox {
 
 
         Button addBook = new Button("➕ Add Book");
+//        addBook.getStyleClass().add("button-part");
         addBook.setCursor(Cursor.HAND);
+        addBook.setEffect(blackShadow);
+        addBook.setOnMouseEntered(event -> {
+            addBook.setScaleX(1.1);
+//            copyTable.setCursor(Cursor.HAND);
+            addBook.setEffect(blueShadow);
+        });
+        addBook.setOnMouseExited(event -> {
+            addBook.setScaleX(1.0);
+            addBook.setEffect(blackShadow);
+        });
+        ScaleTransition pressAdd = new ScaleTransition(Duration.millis(80), addBook);
+        pressAdd.setToX(0.95);
+        pressAdd.setToY(0.95);
+
+        ScaleTransition releaseAdd = new ScaleTransition(Duration.millis(80), addBook);
+        releaseAdd.setToX(1.0);
+        releaseAdd.setToY(1.0);
+
+        addBook.setOnMousePressed(e -> pressAdd.play());
+        addBook.setOnMouseReleased(e -> releaseAdd.play());
+
+
+
         addBook.setOnAction(e -> {
             String newTitle = bookTitleField.getText();
             String newAuthor = author.getText();
@@ -859,8 +883,6 @@ public class CheckOutView extends HBox {
 
             String newDuration = duration.getText();
             int quantity = teacherCheckBox.isSelected() ? Integer.parseInt(quantityComboBox.getValue().replaceAll("[^0-9]", "")) : 1;
-            System.out.println("⚠️ The quantity is: " + quantity);
-
 
                     if (!newTitle.isBlank() && !newAuthor.isBlank()) {
                         // Check for duplicates by title + author
@@ -1018,9 +1040,28 @@ public class CheckOutView extends HBox {
         });
 
 
-        Button updateBook = new Button("✅ Update Book");
+        Button updateBook = new Button("Update Book");
         updateBook.setCursor(Cursor.HAND);
 
+        updateBook.setEffect(blackShadow);
+        updateBook.setOnMouseEntered(event -> {
+            updateBook.setScaleX(1.1);
+            updateBook.setEffect(blueShadow);
+        });
+        updateBook.setOnMouseExited(event -> {
+            updateBook.setScaleX(1.0);
+            updateBook.setEffect(blackShadow);
+        });
+        ScaleTransition pressUpdate = new ScaleTransition(Duration.millis(80), updateBook);
+        pressUpdate.setToX(0.95);
+        pressUpdate.setToY(0.95);
+
+        ScaleTransition releaseUpdate = new ScaleTransition(Duration.millis(80), updateBook);
+        releaseUpdate.setToX(1.0);
+        releaseUpdate.setToY(1.0);
+
+        updateBook.setOnMousePressed(e -> pressUpdate.play());
+        updateBook.setOnMouseReleased(e -> releaseUpdate.play());
 
         updateBook.setOnAction(e -> {
             if (selectedIndex >= 0 && selectedIndex < selectedBooks.size()) {
@@ -1055,9 +1096,29 @@ public class CheckOutView extends HBox {
 
 
 
-        Button deleteBook = new Button("🗑️ Delete Book");
+        Button deleteBook = new Button("🗑Delete Book");
         deleteBook.setCursor(Cursor.HAND);
-//        deleteBook.setStyle("-fx-background-color: #E53935; -fx-text-fill: white;");
+
+        deleteBook.setEffect(blackShadow);
+        deleteBook.setOnMouseEntered(event -> {
+            deleteBook.setScaleX(1.1);
+            deleteBook.setEffect(blueShadow);
+        });
+        deleteBook.setOnMouseExited(event -> {
+            deleteBook.setScaleX(1.0);
+            deleteBook.setEffect(blackShadow);
+        });
+        ScaleTransition pressDel = new ScaleTransition(Duration.millis(80), deleteBook);
+        pressUpdate.setToX(0.95);
+        pressUpdate.setToY(0.95);
+
+        ScaleTransition releaseDel = new ScaleTransition(Duration.millis(80), deleteBook);
+        releaseUpdate.setToX(1.0);
+        releaseUpdate.setToY(1.0);
+
+        deleteBook.setOnMousePressed(e -> pressDel.play());
+        deleteBook.setOnMouseReleased(e -> releaseDel.play());
+
         deleteBook.setOnAction(e -> {
             String selected = bookList.getSelectionModel().getSelectedItem();
             if (selected != null) {

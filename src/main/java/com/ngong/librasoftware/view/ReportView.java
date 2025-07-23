@@ -3,19 +3,24 @@ package com.ngong.librasoftware.view;
 import com.ngong.librasoftware.DAO.DatabaseService;
 import com.ngong.librasoftware.model.ReportData;
 import com.ngong.librasoftware.service.ReportService;
+import javafx.animation.ScaleTransition;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.web.WebView;
 import javafx.stage.FileChooser;
+import javafx.util.Duration;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
 
@@ -61,7 +66,7 @@ public class ReportView extends VBox {
         TitledPane optionalDetailsPane = new TitledPane("Optional Details", optionalDetailsBox);
         optionalDetailsPane.setExpanded(false); // collapsed by default
         optionalDetailsPane.setMaxWidth(400);
-        pdfPreview.setPrefHeight(450); // Adjust as needed
+        pdfPreview.setPrefHeight(500); // Adjust as needed
         pdfPreview.setVisible(false);
 
         this.setPadding(new Insets(20));
@@ -74,14 +79,65 @@ public class ReportView extends VBox {
 
 
         Button previewBtn = new Button("Preview");
+        previewBtn.setCursor(Cursor.HAND);
+        DropShadow blackShadow = new DropShadow();
+        blackShadow.setOffsetY(2.0);
+        blackShadow.setColor(javafx.scene.paint.Color.BLACK);
+
+        DropShadow blueShadow = new DropShadow();
+        blackShadow.setOffsetY(2.0);
+        blackShadow.setColor(Color.BLUE); // Set shadow color and transparency
+
+        previewBtn.setEffect(blackShadow);
+        previewBtn.setOnMouseEntered(event -> {
+            previewBtn.setScaleX(1.1);
+            previewBtn.setEffect(blueShadow);
+        });
+        previewBtn.setOnMouseExited(event -> {
+            previewBtn.setScaleX(1.0);
+            previewBtn.setEffect(blackShadow);
+        });
+        ScaleTransition pressUpdate = new ScaleTransition(Duration.millis(80), previewBtn);
+        pressUpdate.setToX(0.95);
+        pressUpdate.setToY(0.95);
+
+        ScaleTransition releaseUpdate = new ScaleTransition(Duration.millis(80), previewBtn);
+        releaseUpdate.setToX(1.0);
+        releaseUpdate.setToY(1.0);
+
+        previewBtn.setOnMousePressed(e -> pressUpdate.play());
+        previewBtn.setOnMouseReleased(e -> releaseUpdate.play());
+
+
         Button saveBtn = new Button("Save Report");
-        Button emailBtn = new Button("Email Report");
+
+        saveBtn.setCursor(Cursor.HAND);
+
+
+        saveBtn.setEffect(blackShadow);
+        saveBtn.setOnMouseEntered(event -> {
+            saveBtn.setScaleX(1.1);
+            saveBtn.setEffect(blueShadow);
+        });
+        saveBtn.setOnMouseExited(event -> {
+            saveBtn.setScaleX(1.0);
+            saveBtn.setEffect(blackShadow);
+        });
+        ScaleTransition pressSave = new ScaleTransition(Duration.millis(80), saveBtn);
+        pressSave.setToX(0.95);
+        pressSave.setToY(0.95);
+
+        ScaleTransition releaseSave = new ScaleTransition(Duration.millis(80), saveBtn);
+        releaseSave.setToX(1.0);
+        releaseSave.setToY(1.0);
+
+        saveBtn.setOnMousePressed(e -> pressSave.play());
+        saveBtn.setOnMouseReleased(e -> releaseSave.play());
 
         ReportData data = db.fetchReportData();
 
 
 
-        File[] previewFile = new File[1];
 
 
         previewBtn.setOnAction(e -> {
@@ -181,11 +237,12 @@ public class ReportView extends VBox {
     private void renderPdfPreview(File pdfFile, ImageView imageView) {
         try (PDDocument document = PDDocument.load(pdfFile)) {
             PDFRenderer renderer = new PDFRenderer(document);
-            BufferedImage bufferedImage = renderer.renderImageWithDPI(0, 150); // First page, 150 DPI
+            BufferedImage bufferedImage = renderer.renderImageWithDPI(0, 100); // First page, 150 DPI
 
             WritableImage fxImage = SwingFXUtils.toFXImage(bufferedImage, null);
             imageView.setImage(fxImage);
-            imageView.setFitHeight(500);
+            imageView.setFitHeight(600);
+            imageView.setFitWidth(700);
             imageView.setVisible(true);
         } catch (IOException e) {
             e.printStackTrace();

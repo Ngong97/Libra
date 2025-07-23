@@ -28,10 +28,6 @@ public class EditStudentPopup extends Stage {
         setTitle("Edit Student");
         DatabaseService db = new DatabaseService();
 
-
-        System.out.println("The student id is: "+student.getStudentId());
-
-
         // Student Info
         TextField name = new TextField(student.nameProperty().get());
         name.setStyle("-fx-pref-width: 300;-fx-padding: 6 10;-fx-background-radius: 6;-fx-border-radius: 6;-fx-border-color: #ccc;-fx-background-color: #fff;-fx-font-size: 14;");

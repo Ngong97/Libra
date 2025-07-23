@@ -221,23 +221,6 @@ public class SignUpWindow extends Application {
                 StartupPreviewWindow startupwindow = new StartupPreviewWindow();
                 Stage pStage=new Stage();
                 startupwindow.start(pStage);
-
-
-
-//                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-//                alert.setTitle("Information");
-//                alert.setHeaderText(null);
-//                alert.setContentText("Welcome to Libra!!");
-//
-//                alert.showAndWait().ifPresent(response -> { if (response == ButtonType.OK) {
-//                    Stage registerstage=new Stage();
-//                    LoginWindow login = new LoginWindow();
-//                    login.start(registerstage);
-//                }
-//                });
-
-
-
             });
         }).start();
 

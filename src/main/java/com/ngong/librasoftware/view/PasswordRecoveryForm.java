@@ -2,9 +2,11 @@ package com.ngong.librasoftware.view;
 
 import com.ngong.librasoftware.DAO.DatabaseService;
 import javafx.animation.KeyFrame;
+import javafx.animation.ScaleTransition;
 import javafx.animation.Timeline;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -45,9 +47,23 @@ public class PasswordRecoveryForm extends Stage {
         feedback.setMaxWidth(320);
         feedback.setStyle("-fx-text-fill: #d32f2f; -fx-font-size: 13px;");
 
-        Button submitBtn = new Button("✅ Reset Password");
+        Button submitBtn = new Button("Reset Password");
+        submitBtn.setCursor(Cursor.HAND);
         submitBtn.setDefaultButton(true);
-        submitBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-padding: 10 20;");
+        submitBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-padding: 10 20;-fx-font-weight: bold");
+
+
+        ScaleTransition pressSubmit = new ScaleTransition(Duration.millis(80), submitBtn);
+        pressSubmit.setToX(0.95);
+        pressSubmit.setToY(0.95);
+
+        ScaleTransition releaseSubmit = new ScaleTransition(Duration.millis(80), submitBtn);
+        releaseSubmit.setToX(1.0);
+        releaseSubmit.setToY(1.0);
+
+        submitBtn.setOnMousePressed(e -> pressSubmit.play());
+        submitBtn.setOnMouseReleased(e -> releaseSubmit.play());
+
 
         submitBtn.setOnAction(e -> {
             String user = usernameField.getText().trim();

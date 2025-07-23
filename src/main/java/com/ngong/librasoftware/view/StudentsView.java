@@ -18,6 +18,9 @@ import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -35,10 +38,12 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 
+import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.List;
 import java.util.function.Function;
 
 public class StudentsView extends VBox {
@@ -253,7 +258,21 @@ public class StudentsView extends VBox {
 
             File file = fileChooser.showSaveDialog(this.contentArea.getScene().getWindow());
 
-            writeToExcel(someList, file);
+//            boolean success=writeToExcel(someList, file);
+
+            if (file != null) {
+                try {
+                    boolean success=writeToExcel(someList, file);
+                    if (success) {
+                        if (Desktop.isDesktopSupported()) {
+                            Desktop.getDesktop().open(file);
+                        }
+                    }
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+
         });
 
         Hyperlink copyTable = new Hyperlink();
@@ -452,7 +471,7 @@ public class StudentsView extends VBox {
         StackPane.setAlignment(msg, Pos.CENTER);
     }
 
-    public void writeToExcel(List<StudentRecord> records, File filePath) {
+    public boolean writeToExcel(List<StudentRecord> records, File filePath) {
         try (Workbook workbook = new HSSFWorkbook()) {
             Sheet sheet = workbook.createSheet("BorrowingDetails");
 
@@ -491,8 +510,12 @@ public class StudentsView extends VBox {
                 workbook.write(fileOut);
             }
             workbook.close();
+            return true;
+
         } catch (IOException e) {
             e.printStackTrace();
+            return false;
+
         }
     }
 
@@ -819,15 +842,15 @@ public class StudentsView extends VBox {
     private void addExpandableDetails() {
 
 
-        table.setRowFactory(tv -> {
-            TableRow<StudentRecord> row = new TableRow<>();
-            row.itemProperty().addListener((obs, oldItem, newItem) -> {
-                if (newItem != null) {
-                    System.out.println("Row item set: " + newItem.getStudentName());
-                }
-            });
-            return row;
-        });
+//        table.setRowFactory(tv -> {
+//            TableRow<StudentRecord> row = new TableRow<>();
+//            row.itemProperty().addListener((obs, oldItem, newItem) -> {
+//                if (newItem != null) {
+//                    System.out.println("Row item set: " + newItem.getStudentName());
+//                }
+//            });
+//            return row;
+//        });
 
 
 

@@ -904,6 +904,9 @@ public void issueBookToStudent(String identity, String name, String gender, Stri
                 INSERT INTO borrowings (student_id, book_id, borrow_date, term, quantity, duration, return_date, returned)
                 VALUES (?, ?, date('now'), ?, ?, ?, date('now', '+' || ? || ' days'), 0)
             """);
+
+
+
             borrow.setInt(1, studentId);
             borrow.setInt(2, bookId);
             borrow.setString(3, term);

@@ -3,15 +3,19 @@ package com.ngong.librasoftware.view;
 import com.ngong.librasoftware.DAO.DatabaseService;
 import com.ngong.librasoftware.utils.AnimationUtils;
 import javafx.animation.FadeTransition;
+import javafx.animation.ScaleTransition;
 import javafx.animation.SequentialTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.control.*;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.util.Duration;
 
@@ -25,7 +29,7 @@ import java.util.stream.Collectors;
 public class SettingsView extends BorderPane {
     private final DatabaseService db = new DatabaseService();
 
-    private final VBox contentArea = new VBox(20);
+    private final VBox parentBox = new VBox(20);
 
     public SettingsView() {
         this.getStyleClass().add("settings-root");
@@ -38,16 +42,66 @@ public class SettingsView extends BorderPane {
         navMenu.getStyleClass().add("settings-nav");
 
         Button accountBtn = new Button("👤 Account");
+        accountBtn.setCursor(Cursor.HAND);
+        DropShadow blackShadow = new DropShadow();
+        blackShadow.setOffsetY(2.0);
+        blackShadow.setColor(Color.BLACK); // Set shadow color and transparency
+
+        DropShadow blueShadow = new DropShadow();
+        blackShadow.setOffsetY(2.0);
+        blackShadow.setColor(Color.BLACK); // Set shadow color and transparency
+
+        accountBtn.setEffect(blackShadow);
+        accountBtn.setOnMouseEntered(event -> {
+            accountBtn.setScaleX(1.1);
+            accountBtn.setEffect(blueShadow);
+        });
+        accountBtn.setOnMouseExited(event -> {
+            accountBtn.setScaleX(1.0);
+            accountBtn.setEffect(blackShadow);
+        });
+        ScaleTransition pressUpdate = new ScaleTransition(Duration.millis(80), accountBtn);
+        pressUpdate.setToX(0.95);
+        pressUpdate.setToY(0.95);
+
+        ScaleTransition releaseUpdate = new ScaleTransition(Duration.millis(80), accountBtn);
+        releaseUpdate.setToX(1.0);
+        releaseUpdate.setToY(1.0);
+
+        accountBtn.setOnMousePressed(e -> pressUpdate.play());
+        accountBtn.setOnMouseReleased(e -> releaseUpdate.play());
+
         Button dbBtn = new Button("🗃️ Database");
 
-        accountBtn.getStyleClass().add("nav-button");
-        dbBtn.getStyleClass().add("nav-button");
+        dbBtn.setCursor(Cursor.HAND);
+
+
+        dbBtn.setEffect(blackShadow);
+        dbBtn.setOnMouseEntered(event -> {
+            dbBtn.setScaleX(1.1);
+            dbBtn.setEffect(blueShadow);
+        });
+        dbBtn.setOnMouseExited(event -> {
+            dbBtn.setScaleX(1.0);
+            dbBtn.setEffect(blackShadow);
+        });
+        ScaleTransition pressDB = new ScaleTransition(Duration.millis(80), dbBtn);
+        pressDB.setToX(0.95);
+        pressDB.setToY(0.95);
+
+        ScaleTransition releaseDB = new ScaleTransition(Duration.millis(80), dbBtn);
+        releaseDB.setToX(1.0);
+        releaseDB.setToY(1.0);
+
+        dbBtn.setOnMousePressed(e -> pressDB.play());
+        dbBtn.setOnMouseReleased(e -> releaseDB.play());
+
 
         navMenu.getChildren().addAll(accountBtn, dbBtn);
 
         // Right Content Area
-        contentArea.setPadding(new Insets(20));
-        contentArea.setPrefWidth(500);
+        parentBox.setPadding(new Insets(20));
+        parentBox.setPrefWidth(500);
 
         // Default view
         showAccountSettings();
@@ -57,7 +111,7 @@ public class SettingsView extends BorderPane {
         dbBtn.setOnAction(e -> showDatabaseSettings());
 
         // Layout
-        HBox mainLayout = new HBox(navMenu, new Separator(), contentArea);
+        HBox mainLayout = new HBox(navMenu, new Separator(), parentBox);
         mainLayout.setSpacing(20);
         mainLayout.setPadding(new Insets(20));
 
@@ -75,14 +129,15 @@ public class SettingsView extends BorderPane {
     }
 
     private void showAccountSettings() {
-        contentArea.getChildren().clear();
+        parentBox.getChildren().clear();
 
         String currentName = db.getCurrentUserFullName();
         String currentPassword = db.getCurrentUserPassword();
 
         TextField nameField = new TextField();
+        nameField.setMaxWidth(300);
         nameField.setPromptText("Enter your new name");
-        nameField.getStyleClass().add("settings-textfield");
+        nameField.getStyleClass().add("user-textfield");
         nameField.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.F3 && event.isShiftDown()) {
                 IndexRange selection = nameField.getSelection();
@@ -105,41 +160,69 @@ public class SettingsView extends BorderPane {
 
 
         PasswordField passwordField = new PasswordField();
+        passwordField.setMaxWidth(300);
         passwordField.setPromptText("Enter your new password");
-        passwordField.getStyleClass().add("settings-textfield");
+        passwordField.getStyleClass().add("user-textfield");
 
         Label currentNameLabel=new Label("Name: ");
         Label currentPasswordLabel=new Label("Password: ");
 
 
 
-        Button saveBtn = createSaveButton(() -> {
+
+
+        Button saveBtn = new Button("💾 Save");
+        saveBtn.setCursor(Cursor.HAND);
+        DropShadow blackShadow = new DropShadow();
+        blackShadow.setOffsetY(2.0);
+        blackShadow.setColor(Color.BLACK); // Set shadow color and transparency
+
+        DropShadow blueShadow = new DropShadow();
+        blueShadow.setOffsetY(2.0);
+        blueShadow.setColor(Color.BLUE); // Set shadow color and transparency
+
+        saveBtn.setEffect(blackShadow);
+        saveBtn.setOnMouseEntered(event -> {
+            saveBtn.setScaleX(1.1);
+            saveBtn.setEffect(blueShadow);
+        });
+        saveBtn.setOnMouseExited(event -> {
+            saveBtn.setScaleX(1.0);
+            saveBtn.setEffect(blackShadow);
+        });
+        ScaleTransition pressSave = new ScaleTransition(Duration.millis(80), saveBtn);
+        pressSave.setToX(0.95);
+        pressSave.setToY(0.95);
+
+        ScaleTransition releaseSave = new ScaleTransition(Duration.millis(80), saveBtn);
+        releaseSave.setToX(1.0);
+        releaseSave.setToY(1.0);
+
+        saveBtn.setOnMousePressed(e -> pressSave.play());
+        saveBtn.setOnMouseReleased(e -> releaseSave.play());
+        saveBtn.getStyleClass().add("settings-button");
+
+        saveBtn.setOnAction(e -> {
             String newName = nameField.getText().trim();
             String newPassword = passwordField.getText().trim();
             if (!newName.isEmpty() && !newPassword.isEmpty()) {
                 boolean updated = db.updateUserInfo(newName, newPassword);
                 if (updated) {
-//                    WarningMessage msg = new WarningMessage(
-//                            "Account update successfully!",
-//                            Duration.seconds(5),
-//                            contentArea
-//                    );
-//                    contentArea.getChildren().add(msg);
-//                    StackPane.setAlignment(msg, Pos.CENTER);
-                    showTransientPopup("Account update successfully!",Duration.seconds(5));
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Information");
+                alert.setHeaderText(null);
+                alert.setContentText("Updated successfully!");
+                alert.showAndWait();
                 }
             }
             else {
-//                WarningMessage msg = new WarningMessage(
-//                        "Please provide credentials!",
-//                        Duration.seconds(5),
-//                        contentArea
-//                );
-//                contentArea.getChildren().add(msg);
-//                StackPane.setAlignment(msg, Pos.CENTER);
-                showTransientPopup("Please provide credentials!",Duration.seconds(5));
-
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Information");
+                alert.setHeaderText(null);
+                alert.setContentText("Please provide recovery details!");
+                alert.showAndWait();
             }
+
         });
 
 
@@ -165,7 +248,7 @@ public class SettingsView extends BorderPane {
 
         HBox currentBox=new HBox(currentIndicator,CurrentNameBox,CurrentPasswordBox);
         currentBox.setSpacing(10);
-        contentArea.getChildren().addAll(
+        parentBox.getChildren().addAll(
                 createSectionTitle("👤 Account Settings"),
                 nameFieldLabel,nameField, passwordFieldLabel,passwordField,
                 new HBox(10, saveBtn, resetBtn),
@@ -185,11 +268,41 @@ public class SettingsView extends BorderPane {
 
 
     private void showDatabaseSettings() {
-        contentArea.getChildren().clear();
+        parentBox.getChildren().clear();
 
         // 📁 Backup Local Database
         Label backupLabel = new Label("Backup Local Database:");
         Button backupBtn = new Button("Backup Database");
+        backupBtn.setCursor(Cursor.HAND);
+        DropShadow blackShadow = new DropShadow();
+        blackShadow.setOffsetY(2.0);
+        blackShadow.setColor(Color.BLACK); // Set shadow color and transparency
+
+        DropShadow blueShadow = new DropShadow();
+        blackShadow.setOffsetY(2.0);
+        blackShadow.setColor(Color.BLACK); // Set shadow color and transparency
+
+        backupBtn.setEffect(blackShadow);
+        backupBtn.setOnMouseEntered(event -> {
+            backupBtn.setScaleX(1.1);
+            backupBtn.setEffect(blueShadow);
+        });
+        backupBtn.setOnMouseExited(event -> {
+            backupBtn.setScaleX(1.0);
+            backupBtn.setEffect(blackShadow);
+        });
+        ScaleTransition pressUpdate = new ScaleTransition(Duration.millis(80), backupBtn);
+        pressUpdate.setToX(0.95);
+        pressUpdate.setToY(0.95);
+
+        ScaleTransition releaseUpdate = new ScaleTransition(Duration.millis(80), backupBtn);
+        releaseUpdate.setToX(1.0);
+        releaseUpdate.setToY(1.0);
+
+        backupBtn.setOnMousePressed(e -> pressUpdate.play());
+        backupBtn.setOnMouseReleased(e -> releaseUpdate.play());
+
+
         backupBtn.getStyleClass().add("settings-button");
 
         backupBtn.setOnAction(e -> {
@@ -232,7 +345,7 @@ public class SettingsView extends BorderPane {
         VBox backupBox = new VBox(10, backupLabel, backupBtn);
         backupBox.setPadding(new Insets(10));
 
-        contentArea.getChildren().addAll(
+        parentBox.getChildren().addAll(
                 createSectionTitle("🗃️ Database Settings"),
                 backupBox
         );
@@ -283,18 +396,36 @@ public class SettingsView extends BorderPane {
         return label;
     }
 
-    private Button createSaveButton(Runnable action) {
-        Button saveBtn = new Button("💾 Save");
-        saveBtn.getStyleClass().add("settings-button");
-        saveBtn.setOnAction(e -> {
-            action.run();
-//            new Alert(Alert.AlertType.INFORMATION, "Settings saved successfully!").show();
-        });
-        return saveBtn;
-    }
-
     private Button createResetButton(Runnable action) {
         Button resetBtn = new Button("↩️ Reset");
+        resetBtn.setCursor(Cursor.HAND);
+        DropShadow blackShadow = new DropShadow();
+        blackShadow.setOffsetY(2.0);
+        blackShadow.setColor(Color.BLACK); // Set shadow color and transparency
+
+        DropShadow blueShadow = new DropShadow();
+        blueShadow.setOffsetY(2.0);
+        blueShadow.setColor(Color.BLUE); // Set shadow color and transparency
+
+        resetBtn.setEffect(blackShadow);
+        resetBtn.setOnMouseEntered(event -> {
+            resetBtn.setScaleX(1.1);
+            resetBtn.setEffect(blueShadow);
+        });
+        resetBtn.setOnMouseExited(event -> {
+            resetBtn.setScaleX(1.0);
+            resetBtn.setEffect(blackShadow);
+        });
+        ScaleTransition pressUpdate = new ScaleTransition(Duration.millis(80), resetBtn);
+        pressUpdate.setToX(0.95);
+        pressUpdate.setToY(0.95);
+
+        ScaleTransition releaseUpdate = new ScaleTransition(Duration.millis(80), resetBtn);
+        releaseUpdate.setToX(1.0);
+        releaseUpdate.setToY(1.0);
+
+        resetBtn.setOnMousePressed(e -> pressUpdate.play());
+        resetBtn.setOnMouseReleased(e -> releaseUpdate.play());
         resetBtn.getStyleClass().add("settings-button");
         resetBtn.setOnAction(e -> action.run());
         return resetBtn;

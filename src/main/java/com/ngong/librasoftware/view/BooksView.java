@@ -194,6 +194,15 @@ public class BooksView extends VBox {
         addBooksBtn.getStyleClass().add("unique-button");
         addBooksBtn.setGraphic(addIcon);
         addBooksBtn.setEffect(blackShadow);
+        addBooksBtn.setCursor(Cursor.HAND);
+
+        Tooltip addBtnTooltip=new Tooltip("Add Book(s)");
+        addBtnTooltip.getStyleClass().add("tool-tip");
+        addBooksBtn.setTooltip(addBtnTooltip);
+        addBtnTooltip.setShowDelay(Duration.millis(100));
+        addBtnTooltip.setHideDelay(Duration.millis(100));
+        addBtnTooltip.getStyleClass().add("tool-tip");
+
 
         addBooksBtn.setOnMouseEntered(event -> {
             addBooksBtn.setScaleX(1.1);
@@ -217,17 +226,16 @@ public class BooksView extends VBox {
         syncWithBorrowed.setOnAction(e -> showBulkAddDialogFromBorrowings());
 
 
-
-//        Button deleteBtn = new Button("🗑️ Delete Selected");
-
         Button deleteBtn = new Button();
         deleteBtn.setOnAction(e -> deleteSelectedBooks(table));
         deleteBtn.setGraphic(delIcon);
+        deleteBtn.setCursor(Cursor.HAND);
         Tooltip deleteBtnTooltip=new Tooltip();
         deleteBtnTooltip.setText("Delete Selected");
-//        deleteBtnTooltip.getStyleClass().add("nav-tooltip");
         deleteBtn.setTooltip(deleteBtnTooltip);
-
+        deleteBtnTooltip.setShowDelay(Duration.millis(100));
+        deleteBtnTooltip.setHideDelay(Duration.millis(100));
+        deleteBtnTooltip.getStyleClass().add("tool-tip");
         deleteBtn.setEffect(blackShadow);
 
         deleteBtn.setOnMouseEntered(event -> {
@@ -246,6 +254,8 @@ public class BooksView extends VBox {
 
 
         Button editBtn = new Button();
+        editBtn.setGraphic(editIcon);
+        editBtn.setCursor(Cursor.HAND);
         editBtn.setOnAction(e -> {
             if (!table.getSelectionModel().getSelectedItems().isEmpty()){
                 editSelectedBooks(table);
@@ -259,12 +269,12 @@ public class BooksView extends VBox {
                 StackPane.setAlignment(msg, Pos.CENTER);
             }
         });
-        editBtn.setGraphic(editIcon);
+
         Tooltip editBtnTooltip=new Tooltip();
         editBtnTooltip.setText("Edit Selected");
-//        editBtnTooltip.getStyleClass().add("nav-tooltip");
         editBtnTooltip.setShowDelay(Duration.millis(100));
         editBtnTooltip.setHideDelay(Duration.millis(100));
+        editBtnTooltip.getStyleClass().add("tool-tip");
         Tooltip.install(editBtn, editBtnTooltip);
 
 
@@ -293,10 +303,11 @@ public class BooksView extends VBox {
         copyTable.setGraphic(copy);
         copyTable.setCursor(Cursor.HAND);
 
-        Tooltip copyTableTooltip=new Tooltip();
-        copyTableTooltip.setText("Copy the table");
-        copyTable.setTooltip(copyTableTooltip);
-
+        Tooltip copyTableTooltip=new Tooltip("Copy the table");
+        Tooltip.install(copyTable,copyTableTooltip);
+        copyTableTooltip.setShowDelay(Duration.millis(100));
+        copyTableTooltip.setHideDelay(Duration.millis(100));
+        copyTableTooltip.getStyleClass().add("tool-tip");
         copyTable.setEffect(blackShadow);
 
         copyTable.setOnMouseEntered(event -> {
@@ -309,11 +320,6 @@ public class BooksView extends VBox {
             copyTable.setScaleX(1.0);
             copyTable.setEffect(blackShadow);
         });
-
-//        copyTable.setEffect(sd);
-//        copyTable.setStyle("-fx-font-family: Consolas;" +      // Set font family
-//                "-fx-font-size: 14;" +
-//                "-fx-border-radius: 10");
 
         copyTable.setOnAction(e -> {
             copyTableToClipboard(table);
@@ -357,7 +363,8 @@ public class BooksView extends VBox {
         headerBar.setRight(rightSearch);
         headerBar.setPadding(new Insets(10, 10, 0, 10));
 
-//        this.getChildren().addAll(title, search, summaryBox, table, buttonBar);
+        this.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
+
         this.getChildren().addAll(title,headerBar, table, buttonBar);
         AnimationUtils.applyFadeIn(this, 600);
     }
@@ -454,18 +461,6 @@ public class BooksView extends VBox {
         bookHoverContent.getChildren().add(header);
 
         // ✨ Position: bottom-left of popup at top-right of pointer, with some offset
-//        double mouseX = event.getScreenX();
-//        double mouseY = event.getScreenY();
-//
-//        double offsetX = 15; // rightward offset
-//        double offsetY = 10; // upward offset
-//
-//        double popupWidth = bookHoverContent.getPrefWidth();
-//        double popupHeight = bookHoverContent.prefHeight(-1); // estimates height
-//
-//        // Position so that bottom-left of popup is at top-right of pointer
-//        double popupX = mouseX + offsetX;
-//        double popupY = mouseY - popupHeight - offsetY;
 
         double mouseX = event.getScreenX();
         double mouseY = event.getScreenY();
@@ -524,7 +519,7 @@ public class BooksView extends VBox {
 
 
         WarningMessage msg = new WarningMessage(
-                "Table copied to Clipboard successfully!",
+                "Table copied to Clipboard!",
                 Duration.seconds(5),
                 contentArea
         );
@@ -538,6 +533,11 @@ public class BooksView extends VBox {
         dialog.setTitle("Add Selected Books to Inventory");
         dialog.getDialogPane().setPrefWidth(700);
 
+
+
+        DropShadow blackShadow = new DropShadow();
+        blackShadow.setOffsetY(2.0);
+        blackShadow.setColor(Color.BLACK);
         // TextArea for entries
         TextArea input = new TextArea();
         input.setStyle("-fx-font-size: 16; -fx-line-spacing: 8;");
@@ -597,14 +597,9 @@ public class BooksView extends VBox {
 
         MenuButton toolsDropdown = new MenuButton("Aa", null,
                 toUpperItem, toLowerItem, capitalizeItem);
-        toolsDropdown.setStyle("-fx-font-size: 14;-fx-background-color: #c1b8b8;-fx-font-weight: bold");
+        toolsDropdown.setStyle("-fx-font-size: 14;-fx-background-color: #96b2e1;-fx-font-weight: bold");
         Tooltip.install(toolsDropdown, new Tooltip("Change case"));
 
-
-
-        DropShadow blackShadow = new DropShadow();
-        blackShadow.setOffsetY(2.0);
-        blackShadow.setColor(Color.BLACK);
 
         Button pasteClipboard = new Button();
         Image pasteIcon = new Image(getClass().getResource("/images/pasteClipboard.png").toString()); // Create a BackgroundImage with the loaded image
@@ -768,7 +763,7 @@ public class BooksView extends VBox {
 
         if (selectedBooks == null || selectedBooks.isEmpty()) {
             WarningMessage msg = new WarningMessage(
-                    "Please select one or more books to delete!",
+                    "Please select something to delete!",
                     Duration.seconds(5),
                     contentArea
             );
@@ -850,6 +845,13 @@ public class BooksView extends VBox {
         dialog.setTitle("Register New Books");
         dialog.getDialogPane().setPrefWidth(500);
 
+
+
+        DropShadow blackShadow = new DropShadow();
+        blackShadow.setOffsetY(2.0);
+        blackShadow.setColor(Color.BLACK); // Set shadow color and transparency
+
+
         // Text input area
         TextArea input = new TextArea();
         input.setStyle("-fx-font-size: 16;-fx-line-spacing: 8;");
@@ -863,17 +865,52 @@ public class BooksView extends VBox {
         TextField categoryInput = new TextField();
         categoryInput.setPromptText("Type category or select below...");
         categoryInput.setPrefWidth(240);
+        categoryInput.getStyleClass().add("settings-textfield");
 
-        // Predefined category dropdown
-        ChoiceBox<String> categoryBox = new ChoiceBox<>();
-        categoryBox.getItems().addAll("fiction", "science", "history", "biography", "technology", "philosophy", "education");
-        categoryBox.setValue("fiction");
+//        categoryBox.setOnAction(e -> categoryInput.setText(categoryBox.getValue()));
+
+        // Create MenuItems for dropdown (Transform tools)
+        MenuItem fiction = new MenuItem("Fiction");
+        MenuItem science = new MenuItem("Science");
+        MenuItem history = new MenuItem("History");
+        MenuItem biography = new MenuItem("Biography");
+        MenuItem technology = new MenuItem("Technology");
+        MenuItem philosophy = new MenuItem("Philosophy");
+        MenuItem education = new MenuItem("Education");
+
+        fiction.setOnAction(e -> categoryInput.setText(fiction.getText()));
+        science.setOnAction(e ->categoryInput.setText(science.getText()));
+        history.setOnAction(e -> categoryInput.setText(history.getText()));
+        biography.setOnAction(e -> categoryInput.setText(biography.getText()));
+        technology.setOnAction(e ->categoryInput.setText(technology.getText()));
+        philosophy.setOnAction(e -> categoryInput.setText(philosophy.getText()));
+        education.setOnAction(e -> categoryInput.setText(education.getText()));
+
+        MenuButton categoryDropdown = new MenuButton("Category", null,
+                fiction, science, history,biography,technology,philosophy,education);
+        categoryDropdown.setStyle("-fx-font-size: 14;-fx-background-color: #96b2e1;-fx-font-weight: bold");
+        Tooltip.install(categoryDropdown, new Tooltip("Choose category"));
+
 
         // Keep both in sync
-        categoryBox.setOnAction(e -> categoryInput.setText(categoryBox.getValue()));
+
 
         // Load Samples Online button
-        Button loadSamplesBtn = new Button("Load Samples Online");
+        ImageView netIcon = new ImageView(new Image(getClass().getResource("/images/network.png").toExternalForm()));
+        netIcon.setFitWidth(30);
+        netIcon.setFitHeight(30);
+
+        Button loadSamplesBtn = new Button();
+        loadSamplesBtn.setGraphic(netIcon);
+        Tooltip deleteBtnTooltip=new Tooltip();
+        deleteBtnTooltip.setText("Load Samples Online");
+        loadSamplesBtn.setTooltip(deleteBtnTooltip);
+        deleteBtnTooltip.setShowDelay(Duration.millis(100));
+        deleteBtnTooltip.setHideDelay(Duration.millis(100));
+        deleteBtnTooltip.getStyleClass().add("tool-tip");
+        loadSamplesBtn.setEffect(blackShadow);
+        loadSamplesBtn.setCursor(Cursor.HAND);
+
         loadSamplesBtn.setOnAction(e -> {
             input.setText("⏳ Loading...");
             String category = categoryInput.getText().isBlank() ? "fiction" : categoryInput.getText();
@@ -885,25 +922,21 @@ public class BooksView extends VBox {
         });
 
 
-        Button importBtn = new Button("📁 Load From File");
-//        importBtn.setOnAction(e -> {
-//            FileChooser chooser = new FileChooser();
-//            chooser.setTitle("Import Book List");
-//            chooser.getExtensionFilters().addAll(
-//                    new FileChooser.ExtensionFilter("Text Files", "*.txt", "*.csv")
-//                    
-//            );
-//            File file = chooser.showOpenDialog(dialog.getOwner());
-//            if (file != null) {
-//                try {
-//                    String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
-//                    input.setText(content);
-//                } catch (IOException ex) {
-//                    feedback.setText("❌ Failed to read file: " + ex.getMessage());
-//                }
-//            }
-//        });
+        ImageView fileIcon = new ImageView(new Image(getClass().getResource("/images/fileIcon.png").toExternalForm()));
+        fileIcon.setFitWidth(30);
+        fileIcon.setFitHeight(30);
 
+
+        Button importBtn = new Button();
+        importBtn.setGraphic(fileIcon);
+        Tooltip importBtnTooltip=new Tooltip();
+        importBtnTooltip.setText("Load From File");
+        importBtn.setTooltip(importBtnTooltip);
+        importBtnTooltip.setShowDelay(Duration.millis(100));
+        importBtnTooltip.setHideDelay(Duration.millis(100));
+        importBtnTooltip.getStyleClass().add("tool-tip");
+        importBtn.setEffect(blackShadow);
+        importBtn.setCursor(Cursor.HAND);
 
         importBtn.setOnAction(e -> {
             FileChooser chooser = new FileChooser();
@@ -947,10 +980,14 @@ public class BooksView extends VBox {
         HBox buttonRow = new HBox(10, loadSamplesBtn,importBtn, okButton, cancelButton);
         buttonRow.setAlignment(Pos.CENTER_RIGHT);
 
+
+
+        HBox categoryBox=new HBox(10,categoryInput,categoryDropdown);
+        categoryBox.setAlignment(Pos.CENTER_RIGHT);
         // Assemble the layout
         VBox content = new VBox(10,
                 new Label("📝 Format: Title - Author = Quantity"),
-                new HBox(10, new Label("Category:"), categoryInput, categoryBox),
+                categoryBox,
                 input,
                 feedback,
                 buttonRow

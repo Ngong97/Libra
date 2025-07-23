@@ -87,12 +87,7 @@ public class SplashWindow extends Application {
                 long endTime = startTime + 8000;
 
                 while (System.currentTimeMillis() < endTime) {
-                    double progress = (System.currentTimeMillis() - startTime) / (double) 8000;
-//                    updateProgress(progress, 1);
 
-                    // Update the progress count label
-//                    int percent = (int) (progress * 100);
-//                    updateMessage(percent + "%");
                     Thread.sleep(50); // Control the update rate
                 }
                 updateProgress(1, 1); // Ensure progress is at 100% when done

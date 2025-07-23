@@ -105,7 +105,7 @@ public class DocumentationViewer {
     }
 
     private static Hyperlink createEmailLink(String email) {
-        Hyperlink link = new Hyperlink("Contact: " + email);
+        Hyperlink link = new Hyperlink("Email: " + email);
         link.setStyle("-fx-text-fill: #1976D2; -fx-underline: true;");
 
         link.setOnAction(e -> {

@@ -450,6 +450,16 @@
     -fx-font-size: 14;
 }
 
+.user-textfield {
+    -fx-max-width: 300;
+    -fx-padding: 6 10;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-color: #ccc;
+    -fx-background-color: #fff;
+    -fx-font-size: 14;
+}
+
 .settings-label {
     -fx-font-size: 14;
 }
@@ -464,17 +474,17 @@
     -fx-background-color: #fff;
     -fx-font-size: 14;
 }
-.settings-button {
-    -fx-background-color: #3498db;
-    -fx-text-fill: white;
-    -fx-padding: 8 16;
-    -fx-background-radius: 6;
-    -fx-cursor: hand;
-}
+/*.settings-button {*/
+/*    -fx-background-color: #3498db;*/
+/*    -fx-text-fill: white;*/
+/*    -fx-padding: 8 16;*/
+/*    -fx-background-radius: 6;*/
+/*    -fx-cursor: hand;*/
+/*}*/
 
-.settings-button:hover {
-    -fx-background-color: #2980b9;
-}
+/*.settings-button:hover {*/
+/*    -fx-background-color: #2980b9;*/
+/*}*/
 
 .settings-combobox {
     -fx-pref-width: 200;
@@ -559,24 +569,8 @@
 
 }
 
-/*.Button-part {*/
-/*    -fx-background-color: #c6cfdc;*/
-/*    -fx-text-fill: #294172;*/
-/*    -fx-font-size: 13px;*/
-/*    -fx-background-radius: 6;*/
-/*    -fx-border-radius: 6;*/
-/*    -fx-border-color: transparent;*/
-/*    -fx-cursor: hand;*/
-/*}*/
 
-/*.hyperlink:pressed {*/
-/*    -fx-translate-y: 2;*/
-/*    -fx-scale-x: 0.97;*/
-/*    -fx-scale-y: 0.97;*/
-/*}*/
-
-
-.Button-part:hover {
+.button-part:hover {
     -fx-background-color: #e9f1fd;
     -fx-scale-x: 1.1;
     -fx-scale-y: 1.1;
@@ -658,7 +652,7 @@
 
 /* School name label */
 .school-label {
-    -fx-font-family: "Segoe UI";
+    -fx-font-family: "Impact";
     -fx-font-size: 34px;
     -fx-text-fill: #2c3e50;
     -fx-padding: 30 10 10 10;
@@ -699,4 +693,13 @@
 
 .label {
     -fx-text-background-color: #353333; /* or your preferred fallback */
+}
+
+.tool-tip{
+    -fx-background-color: #333;
+    -fx-text-fill: white;
+    -fx-padding: 12 15;
+    -fx-background-radius: 10;
+    -fx-font-size: 15px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 10, 0.5, 0, 2);
 }

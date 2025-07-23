@@ -9,14 +9,15 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.stage.Popup;
-import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.io.File;
@@ -35,7 +36,7 @@ public class DashboardView extends VBox {
 
     public DashboardView(Pane contentArea) {
 
-//        System.out.println("The current borrowed books are: "+db.countCurrentlyBorrowedBooks());
+        System.out.println("The details are correct: "+db.checkCredentials("ngong","admin"));
         System.out.println("The current borrowed books are: "+db.countOverdueBooks("","","","",null,"",""));
 
         bookHoverContent.setStyle("""
@@ -211,64 +212,21 @@ public class DashboardView extends VBox {
         topBar.setPadding(new Insets(10, 20, 10, 20));
         topBar.setAlignment(Pos.CENTER_LEFT);
 
-
-// Context menu for user actions
-        ContextMenu userMenu = new ContextMenu();
-        MenuItem readItem = new MenuItem("📖 Read");
-        MenuItem historyItem = new MenuItem("🕘 History");
-        MenuItem intruderItem = new MenuItem("🛡️ Check Intruder");
-        MenuItem logoutItem = new MenuItem("🚪 Logout");
-
-        readItem.setOnAction(e -> {
-            // Open a PDF reader view or online library
-            contentArea.getChildren().setAll(new ReadView());
-        });
-
-        historyItem.setOnAction(e -> {
-            // Show recent actions (borrowed, cleared, added)
-            contentArea.getChildren().setAll(new HistoryView());
-        });
-
-        intruderItem.setOnAction(e -> {
-            // Show login attempts or suspicious activity
-            contentArea.getChildren().setAll(new IntruderCheckView());
-        });
-
-        logoutItem.setOnAction(e -> {
-            // Confirm and close the app
-            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure you want to logout?", ButtonType.YES, ButtonType.NO);
-            confirm.showAndWait().ifPresent(response -> {
-                if (response == ButtonType.YES) {
-                    Stage stage = (Stage)
-                    this.getScene().getWindow();
-                    stage.close(); // Exit the dashboard
-                }
-            });
-        });
-
-
-
-        userMenu.getItems().addAll(readItem, historyItem, intruderItem, new SeparatorMenuItem(), logoutItem);
-
-
-
 // 7. Combine as balanced cards
         HBox bottomRow = new HBox(40, topBooksBox, activityBox);
 //        bottomRow.getStyleClass().add("section-box");
         bottomRow.setAlignment(Pos.CENTER_LEFT);
         bottomRow.setPadding(new Insets(10, 0, 0, 0));
 
-//        VBox.setMargin(topBar, new Insets(0, 0, 0, 25));  // push this child 30px right by setting left margin
-//
-//        VBox.setMargin(statCards, new Insets(0, 0, 0, 30));  // push this child 30px right by setting left margin
-//        VBox.setMargin(returnBox, new Insets(0, 0, 0, 30));  // push this child 30px right by setting left margin
-//        VBox.setMargin(trends, new Insets(0, 0, 0, 40));  // push this child 30px right by setting left margin
-//        VBox.setMargin(bottomRow, new Insets(0, 0, 0, 30));  // push this child 30px right by setting left margin
+        VBox.setMargin(topBar, new Insets(0, 0, 0, 85));  // push this child 30px right by setting left margin
+        VBox.setMargin(statCards, new Insets(0, 0, 0, 90));  // push this child 30px right by setting left margin
+        VBox.setMargin(returnBox, new Insets(0, 0, 0, 90));  // push this child 30px right by setting left margin
+        VBox.setMargin(trends, new Insets(0, 0, 0, 90));  // push this child 30px right by setting left margin
+        VBox.setMargin(bottomRow, new Insets(0, 0, 0, 90));  // push this child 30px right by setting left margin
 
 
 
-
-        this.getChildren().addAll(topBar, returnBox,statCards, trends, bottomRow);;
+        this.getChildren().addAll(topBar,returnBox,statCards, trends, bottomRow);;
 
         // Smooth blink for stat cards every 5 seconds
         Timeline cardBlink = new Timeline(new KeyFrame(Duration.seconds(5), e -> {
@@ -481,7 +439,6 @@ private void showBookHoverPopup(MouseEvent event, String bookTitle) {
 
     private String getTimeGreeting() {
         int hour = LocalTime.now().getHour();
-        System.out.println(hour);
         if (hour < 12) return "Good morning";
         if (hour > 12 && hour < 17) return "Good afternoon";
         return "Good evening";

@@ -2,6 +2,7 @@ package com.ngong.librasoftware.view;
 
 import com.ngong.librasoftware.Controller.DashboardApp;
 import com.ngong.librasoftware.DAO.DatabaseService;
+import javafx.animation.ScaleTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -17,11 +18,15 @@ import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.util.Duration;
 
 public class LoginWindow extends Application {
     private final DatabaseService db = new DatabaseService();
 
     private boolean isPasswordVisible=false;
+
+    private int failedAttempts = 0;
+
 
     @Override
     public void start(Stage primaryStage) {
@@ -44,17 +49,29 @@ public class LoginWindow extends Application {
         passwordField.setMaxWidth(280);
         passwordField.setPromptText("Password");
 
-        // Forgot Password link
-        Hyperlink forgotPasswordLink = new Hyperlink("Forgot your password?");
-        forgotPasswordLink.setTextFill(Color.web("#1a73e8"));
-        forgotPasswordLink.setStyle("-fx-font-size: 12px;");
-        forgotPasswordLink.setOnAction(event -> {
-           showResetCredentials();
-        });
+        Hyperlink forgotPasswordLink = new Hyperlink("Forgot password?");
+        forgotPasswordLink.setVisible(false); // initially hidden
+        forgotPasswordLink.setStyle("-fx-text-fill: #1976D2; -fx-underline: true;");
+        forgotPasswordLink.setOnAction(e -> new PasswordRecoveryForm().launch());
+
+
         // Login button
         Button loginButton = new Button("Login");
+
+        loginButton.setDefaultButton(true);
         loginButton.setPrefWidth(200);
         loginButton.setStyle("-fx-background-color: #1a73e8; -fx-text-fill: white; -fx-font-weight: bold;");
+
+        ScaleTransition pressLogin = new ScaleTransition(Duration.millis(80), loginButton);
+        pressLogin.setToX(0.95);
+        pressLogin.setToY(0.95);
+
+        ScaleTransition releaseLogin = new ScaleTransition(Duration.millis(80), loginButton);
+        releaseLogin.setToX(1.0);
+        releaseLogin.setToY(1.0);
+
+        loginButton.setOnMousePressed(e -> pressLogin.play());
+        loginButton.setOnMouseReleased(e -> releaseLogin.play());
 
 
         DropShadow sd = new DropShadow();
@@ -81,33 +98,31 @@ public class LoginWindow extends Application {
         passtextfield.setStyle("-fx-font-family: 'Times New Roman';-fx-font-size: 16;-fx-font-weight: bold");
         passtextfield.setVisible(false);
 
-        loginButton.setOnAction(event -> {
-            String username = usernameField.getText();
-            String password = passwordField.getText();
-            if (!username.isBlank()&&!password.isBlank()) {
-                if (db.checkCredentials(username, password)) {
-                    usernameField.setEditable(false);
-                    passwordField.setEditable(false);
-                    usernameField.setDisable(true);
-                    passwordField.setDisable(true);
-                    loginButton.setDisable(true);
-                    showLoadingPopUp(primaryStage);
-                }else {
-//                    snackbar.show("Check Credentials!");
+
+        loginButton.setOnAction(e -> {
+            String enteredUsername = usernameField.getText();
+            String enteredPassword = passwordField.getText();
+
+            boolean isValid = db.checkCredentials(enteredUsername, enteredPassword);
+
+            if (isValid) {
+                showLoadingPopUp(primaryStage);
+                failedAttempts = 0;
+            } else {
+                failedAttempts++;
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Information");
+                alert.setHeaderText(null);
+                alert.setContentText("Incorrect credentials. Attempt " + failedAttempts + " of 5.");
+                alert.showAndWait();
+                if (failedAttempts >= 5) {
+                    forgotPasswordLink.setVisible(true);
+                    // Optional: add visual cue
+                    forgotPasswordLink.setStyle("-fx-text-fill: #D32F2F; -fx-font-weight: bold;");
                 }
             }
-            else {
-//                snackbar.show("Fill all!");
-
-            }
-
         });
 
-//        Hyperlink replaceDbLink = new Hyperlink("Replace Database");
-//        replaceDbLink.setOnAction(e ->{
-//            primaryStage.close();
-//            new DatabaseFileSwitcherWindow().show(primaryStage);
-//        });
 
 
         VBox formLayout = new VBox(20, titleLabel, usernameField,passwordField, forgotPasswordLink, loginButton);
