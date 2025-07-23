@@ -1,6 +1,5 @@
 package com.ngong.librasoftware.Controller;
 
-import com.ngong.librasoftware.DAO.DatabaseService;
 import com.ngong.librasoftware.view.LoginOrRegister;
 import com.ngong.librasoftware.view.SignUpWindow;
 import javafx.application.Application;
@@ -20,8 +19,6 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
 public class SplashWindow extends Application {
-    private final DatabaseService db = new DatabaseService();
-
     @Override
     public void start(Stage primaryStage) {
         primaryStage.initStyle(StageStyle.UNDECORATED); // Remove window decorations

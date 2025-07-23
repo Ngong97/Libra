@@ -21,8 +21,6 @@ import javafx.stage.Stage;
 import java.util.List;
 
 public class EditStudentPopup extends Stage {
-    private final DatabaseService db = new DatabaseService();
-    ComboBox<String> titleComboBox;
 
     public EditStudentPopup(StudentRecord student, Runnable onUpdate) {
         setTitle("Edit Student");
