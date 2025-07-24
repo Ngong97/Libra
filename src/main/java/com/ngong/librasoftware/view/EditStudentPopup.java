@@ -262,6 +262,7 @@ public class EditStudentPopup extends Stage {
         VBox.setVgrow(tabs, Priority.ALWAYS);
 
         setScene(new Scene(root, 500, 470));
+        this.setResizable(false);
         initModality(Modality.APPLICATION_MODAL);
     }
 

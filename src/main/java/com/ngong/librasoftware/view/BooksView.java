@@ -555,7 +555,7 @@ public class BooksView extends VBox {
 
                     int cycle = shiftF3Cycle.get() % 3;
                     switch (cycle) {
-                        case 0 -> transformed = capitalizeWords(selectedText);
+                        case 0 -> transformed = capitalizeLinesPreservingFormat(selectedText);
                         case 1 -> transformed = selectedText.toUpperCase();
                         case 2 -> transformed = selectedText.toLowerCase();
                         default -> transformed = selectedText;
@@ -706,12 +706,20 @@ public class BooksView extends VBox {
         dialog.showAndWait();
     }
 
+    private String capitalizeLinesPreservingFormat(String input) {
+        return Arrays.stream(input.split("\n"))
+                .map(this::capitalizeWords)
+                .collect(Collectors.joining("\n"));
+    }
+
     private String capitalizeWords(String input) {
         return Arrays.stream(input.trim().split("\\s+"))
                 .map(word -> word.isEmpty() ? word :
                         Character.toUpperCase(word.charAt(0)) + word.substring(1).toLowerCase())
                 .collect(Collectors.joining(" "));
     }
+
+
 
     private BookEntry parseSingleLineToBookEntry(String line) {
         String[] eqParts = line.trim().split("=", 2);
@@ -857,6 +865,39 @@ public class BooksView extends VBox {
         input.setStyle("-fx-font-size: 16;-fx-line-spacing: 8;");
         input.setPromptText("e.g.\nThings Fall Apart - Chinua Achebe = 5\nAtomic Habits - James Clear = 3");
 
+        IntegerProperty shiftF3Cycle = new SimpleIntegerProperty(0);
+
+
+        input.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == KeyCode.F3 && event.isShiftDown()) {
+                IndexRange selection = input.getSelection();
+                if (selection.getLength() > 0) {
+                    String selectedText = input.getSelectedText();
+                    String transformed;
+
+                    int cycle = shiftF3Cycle.get() % 3;
+                    switch (cycle) {
+                        case 0 -> transformed = capitalizeLinesPreservingFormat(selectedText);
+                        case 1 -> transformed = selectedText.toUpperCase();
+                        case 2 -> transformed = selectedText.toLowerCase();
+                        default -> transformed = selectedText;
+                    }
+
+                    // Replace selection
+                    input.replaceText(selection.getStart(), selection.getEnd(), transformed);
+
+                    // Reselect updated text
+                    input.selectRange(selection.getStart(), selection.getStart() + transformed.length());
+
+                    shiftF3Cycle.set(cycle + 1); // Move to next cycle
+                }
+
+                event.consume(); // prevent further propagation
+            }
+        });
+
+
+
         Label feedback = new Label();
         feedback.setWrapText(true);
         feedback.setStyle("-fx-text-fill: red;");
@@ -866,8 +907,6 @@ public class BooksView extends VBox {
         categoryInput.setPromptText("Type category or select below...");
         categoryInput.setPrefWidth(240);
         categoryInput.getStyleClass().add("settings-textfield");
-
-//        categoryBox.setOnAction(e -> categoryInput.setText(categoryBox.getValue()));
 
         // Create MenuItems for dropdown (Transform tools)
         MenuItem fiction = new MenuItem("Fiction");
@@ -981,8 +1020,24 @@ public class BooksView extends VBox {
         buttonRow.setAlignment(Pos.CENTER_RIGHT);
 
 
+        // Create MenuItems for dropdown (Transform tools)
+        MenuItem toUpperItem = new MenuItem("UPPER CASE");
+        MenuItem toLowerItem = new MenuItem("lower case");
+        MenuItem capitalizeItem = new MenuItem("Capitalize Each");
 
-        HBox categoryBox=new HBox(10,categoryInput,categoryDropdown);
+        toUpperItem.setOnAction(e -> transformSelection(input, String::toUpperCase));
+        toLowerItem.setOnAction(e -> transformSelection(input, String::toLowerCase));
+        capitalizeItem.setOnAction(e -> transformSelection(input, NgongUtils::capitalizeEachWord));
+
+        MenuButton toolsDropdown = new MenuButton("Aa", null,
+                toUpperItem, toLowerItem, capitalizeItem);
+        toolsDropdown.setStyle("-fx-font-size: 14;-fx-background-color: #96b2e1;-fx-font-weight: bold");
+        Tooltip.install(toolsDropdown, new Tooltip("Change case"));
+
+
+
+
+        HBox categoryBox=new HBox(10,toolsDropdown,categoryInput,categoryDropdown);
         categoryBox.setAlignment(Pos.CENTER_RIGHT);
         // Assemble the layout
         VBox content = new VBox(10,
@@ -1027,13 +1082,6 @@ public class BooksView extends VBox {
                                 }
 
 
-//                                WarningMessage popup = new WarningMessage(
-//                                        "📡 Connect to internet to load book descriptions!",
-//                                        Duration.seconds(4),
-//                                        contentArea
-//                                );
-//                                contentArea.getChildren().add(popup);
-//                                StackPane.setAlignment(popup, Pos.CENTER);
                             }else {
                                 db.addToPendingDescriptions(entry.title(), entry.author()); // retryCount defaults to 0
                             }
@@ -1073,6 +1121,37 @@ public class BooksView extends VBox {
         input.setStyle("-fx-font-size: 16;-fx-line-spacing: 8;");
         input.setPromptText("e.g.\nThings Fall Apart - Chinua Achebe = 5");
 
+        IntegerProperty shiftF3Cycle = new SimpleIntegerProperty(0);
+
+
+        input.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == KeyCode.F3 && event.isShiftDown()) {
+                IndexRange selection = input.getSelection();
+                if (selection.getLength() > 0) {
+                    String selectedText = input.getSelectedText();
+                    String transformed;
+
+                    int cycle = shiftF3Cycle.get() % 3;
+                    switch (cycle) {
+                        case 0 -> transformed = capitalizeLinesPreservingFormat(selectedText);
+                        case 1 -> transformed = selectedText.toUpperCase();
+                        case 2 -> transformed = selectedText.toLowerCase();
+                        default -> transformed = selectedText;
+                    }
+
+                    // Replace selection
+                    input.replaceText(selection.getStart(), selection.getEnd(), transformed);
+
+                    // Reselect updated text
+                    input.selectRange(selection.getStart(), selection.getStart() + transformed.length());
+
+                    shiftF3Cycle.set(cycle + 1); // Move to next cycle
+                }
+
+                event.consume(); // prevent further propagation
+            }
+        });
+
         Label feedback = new Label();
         feedback.setWrapText(true);
         feedback.setStyle("-fx-text-fill: red;");
@@ -1094,8 +1173,26 @@ public class BooksView extends VBox {
         HBox buttonRow = new HBox(10, okButton, cancelButton);
         buttonRow.setAlignment(Pos.CENTER_RIGHT);
 
+
+        // Create MenuItems for dropdown (Transform tools)
+        MenuItem toUpperItem = new MenuItem("UPPER CASE");
+        MenuItem toLowerItem = new MenuItem("lower case");
+        MenuItem capitalizeItem = new MenuItem("Capitalize Each");
+
+        toUpperItem.setOnAction(e -> transformSelection(input, String::toUpperCase));
+        toLowerItem.setOnAction(e -> transformSelection(input, String::toLowerCase));
+        capitalizeItem.setOnAction(e -> transformSelection(input, NgongUtils::capitalizeEachWord));
+
+        MenuButton toolsDropdown = new MenuButton("Aa", null,
+                toUpperItem, toLowerItem, capitalizeItem);
+        toolsDropdown.setStyle("-fx-font-size: 14;-fx-background-color: #96b2e1;-fx-font-weight: bold");
+        Tooltip.install(toolsDropdown, new Tooltip("Change case"));
+
+
+
         VBox content = new VBox(10,
-                new Label("📝 Review and edit before adding to inventory:"),
+                new HBox(10,toolsDropdown,
+                        new Label("📝 Review and edit before adding to inventory:")),
                 input,
                 feedback,
                 buttonRow

@@ -37,10 +37,6 @@ public class DashboardApp extends Application {
         root.setCenter(contentArea);
         contentArea.getChildren().setAll(new DashboardView(contentArea));
 
-
-
-
-
         //logging ...........
 
         Button toggleBtn = new Button("☰");
@@ -49,15 +45,17 @@ public class DashboardApp extends Application {
 
         // Create nav buttons with icons and hover labels
         Button dashboardBtn = createNavButton("Dashboard", "/images/dashboard.png");
+        dashboardBtn.getStyleClass().add("selected");
+
         Button booksBtn = createNavButton("Inventory", "/images/books2.png");
         Button studentsBtn = createNavButton("Students", "/images/reading.png");
-        Button checkoutBtn = createNavButton("Hand book out", "/images/book-out.png");
+        Button checkoutBtn = createNavButton("Hand book out", "/images/addstudent.png");
         Button statsBtn = createNavButton("Statistics", "/images/statistics.png");
         Button settingsBtn = createNavButton("Settings", "/images/setting.png");
         Button aboutBtn = createNavButton("About", "/images/aboutus.png");
         Button reportBtn = createNavButton("Make Report", "/images/report.png");
-
-        List<Button> navButtons = List.of(dashboardBtn, booksBtn, studentsBtn,checkoutBtn, statsBtn, settingsBtn, aboutBtn,reportBtn);
+        Button logout=createNavButton("Logout","/images/logout.png");
+        List<Button> navButtons = List.of(dashboardBtn, booksBtn, studentsBtn,checkoutBtn, statsBtn, settingsBtn, aboutBtn,reportBtn,logout);
 
         // Assign actions
         reportBtn.setOnAction(e -> {
@@ -102,6 +100,14 @@ public class DashboardApp extends Application {
             setSelectedNav(aboutBtn, navButtons);
         });
 
+        logout.setOnAction(e -> {
+            primaryStage.close();
+            Stage registerstage=new Stage();
+            LoginWindow loginWindow = new LoginWindow();
+            loginWindow.start(registerstage);
+        });
+
+        setSelectedNav(dashboardBtn, navButtons); // ensures CSS class is synced
 
         DropShadow blueShadow = new DropShadow();
         blueShadow.setOffsetY(2.0);
@@ -118,19 +124,11 @@ public class DashboardApp extends Application {
             });
         }
 
-        Button logout=new Button("Logout");
 
-        logout.setOnAction(e -> {
-//            contentArea.getChildren().setAll(new AboutView());
-//            setSelectedNav(aboutBtn, navButtons);
-            primaryStage.close();
-            Stage registerstage=new Stage();
-            LoginWindow loginWindow = new LoginWindow();
-            loginWindow.start(registerstage);
-        });
+
 
         // Sidebar layout
-        navMenu = new VBox(10, dashboardBtn, booksBtn, studentsBtn, checkoutBtn,statsBtn, settingsBtn,reportBtn, aboutBtn,logout);
+        navMenu = new VBox(10, dashboardBtn, booksBtn, studentsBtn, checkoutBtn,statsBtn, settingsBtn,reportBtn, aboutBtn,new Label(),logout);
         navMenu.setVisible(true);
         navMenu.setManaged(true);
 

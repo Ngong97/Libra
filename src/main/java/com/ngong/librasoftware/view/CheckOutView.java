@@ -1020,14 +1020,33 @@ public class CheckOutView extends HBox {
 
 
 
+//        bookList.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+//            selectedIndex = bookList.getSelectionModel().getSelectedIndex();
+//            if (newVal != null) {
+//                for (BookEntry2 entry : selectedBooks) {
+//                    System.out.println("The quantity is: "+entry.quantity);
+//
+//                    String summary = entry.title + " — " + entry.author + " ("+entry.quantity+" Copies"+")";
+//                    if (summary.equals(newVal)) {
+//                        bookTitleField.setText(entry.title);
+//                        author.setText(entry.author);
+//                        isbn.setText(entry.isbn);
+//                        duration.setText(entry.duration);
+//                        quantityComboBox.setValue(String.valueOf(entry.quantity));
+//                        break;
+//                    }
+//                }
+//            }
+//        });
+
+
+
         bookList.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             selectedIndex = bookList.getSelectionModel().getSelectedIndex();
             if (newVal != null) {
                 for (BookEntry2 entry : selectedBooks) {
-                    System.out.println("The quantity is: "+entry.quantity);
-
-                    String summary = entry.title + " — " + entry.author + " ("+entry.quantity+" Copies"+")";
-                    if (summary.equals(newVal)) {
+                    String display = renderDisplay(entry);
+                    if (display.equals(newVal)) {
                         bookTitleField.setText(entry.title);
                         author.setText(entry.author);
                         isbn.setText(entry.isbn);
@@ -1038,6 +1057,8 @@ public class CheckOutView extends HBox {
                 }
             }
         });
+
+
 
 
         Button updateBook = new Button("Update Book");
@@ -1073,7 +1094,11 @@ public class CheckOutView extends HBox {
                 entry.quantity = Integer.parseInt(quantityComboBox.getValue().replaceAll("[^0-9]", ""));; // ✅ Now it's an int
 
 
-                bookList.getItems().set(selectedIndex, entry.title + " — " + entry.author);
+//                bookList.getItems().set(selectedIndex, entry.title + " — " + entry.author);
+
+                bookList.getItems().set(selectedIndex, renderDisplay(entry));
+
+
 
                 bookTitleField.clear(); author.clear(); isbn.clear(); duration.clear();
                 quantityComboBox.setValue(null);
@@ -1303,6 +1328,10 @@ public class CheckOutView extends HBox {
         this.setAlignment(Pos.TOP_CENTER);
 
 
+    }
+
+    private String renderDisplay(BookEntry2 entry) {
+        return entry.title + " — " + entry.author + " (" + entry.quantity + " Copies)";
     }
 
 

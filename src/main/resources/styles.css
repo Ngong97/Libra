@@ -84,13 +84,7 @@
     -fx-border-color: white;
     -fx-scale-x: 1.05;
     -fx-scale-y: 1.05;
-
-    /* 💙 Blue drop shadow effect */
-    /*-fx-effect: dropshadow(gaussian, #2196f3, 10, 0.5, 0, 2);*/
 }
-
-
-
 
 
 .dashboard {
@@ -702,4 +696,40 @@
     -fx-background-radius: 10;
     -fx-font-size: 15px;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 10, 0.5, 0, 2);
+}
+
+#splash-root {
+    -fx-background-color: linear-gradient(to bottom right, #0f1c2e, #102538);
+    -fx-padding: 40px;
+}
+
+#icon {
+    -fx-font-size: 70px;
+    -fx-text-fill: white;
+}
+
+#title {
+    -fx-font-size: 48px;
+    -fx-text-fill: white;
+    -fx-font-family: "Segoe UI", sans-serif;
+    -fx-font-weight: bold;
+}
+
+#subtitle {
+    -fx-font-size: 16px;
+    -fx-text-fill: #c0c0c0;
+    -fx-font-family: "Segoe UI", sans-serif;
+}
+
+#version {
+    -fx-font-size: 14px;
+    -fx-text-fill: #808080;
+    -fx-font-family: "Segoe UI", sans-serif;
+}
+
+#loading {
+    -fx-font-size: 16px;
+    -fx-text-fill: #a0a0a0;
+    -fx-font-family: "Segoe UI", sans-serif;
+    -fx-padding: 10px 0 0 0;
 }
