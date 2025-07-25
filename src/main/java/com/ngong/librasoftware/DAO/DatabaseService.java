@@ -1362,40 +1362,6 @@ public void clearReturnStatusForBooks(int borrowerId, Map<Integer, Integer> quan
         return exists;
     }
 
-    public List<OverdueStudentRecord> getOverdueStudents() {
-        String sql = """
-        SELECT s.name, s.gender, s.student_class, bk.title, bk.author, bk.isbn,
-               b.borrow_date, b.return_date
-        FROM borrowings b
-        JOIN students s ON s.student_id = b.student_id
-        JOIN books bk ON bk.book_id = b.book_id
-        WHERE b.returned = 0 AND DATE(b.return_date) < DATE('now')
-        ORDER BY b.return_date ASC
-    """;
-
-        List<OverdueStudentRecord> overdue = new ArrayList<>();
-        try (Connection conn = DriverManager.getConnection(DB_URL);
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-
-            while (rs.next()) {
-                overdue.add(new OverdueStudentRecord(
-                        rs.getString("name"),
-                        rs.getString("gender"),
-                        rs.getString("student_class"),
-                        rs.getString("title"),
-                        rs.getString("author"),
-                        rs.getString("isbn"),
-                        rs.getString("borrow_date"),
-                        rs.getString("return_date")
-                ));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return overdue;
-    }
-
 
     public int countUnclearedStudentsByGender(String gender, String term, String studentClass, Month month) {
         StringBuilder query = new StringBuilder("""
@@ -1426,58 +1392,6 @@ public void clearReturnStatusForBooks(int borrowerId, Map<Integer, Integer> quan
 
 
 
-
-    public void saveBorrowingDetailsForForgottenBook(int studentId, int bookId, LocalDate borrowDate, LocalDate returnDate,String term) throws SQLException {
-        String sql = "INSERT INTO borrowings (student_id, book_id, borrow_date, return_date,term) VALUES (?, ?, ?, ?,?)";
-
-        try (Connection conn=DriverManager.getConnection(DB_URL);
-        PreparedStatement stmt = conn.prepareStatement(sql);
-        ){
-
-            stmt.setInt(1, studentId);
-            stmt.setInt(2, bookId);
-            stmt.setString(3, borrowDate.toString());
-            stmt.setString(4, returnDate.toString());
-            stmt.setString(5,term);
-            stmt.executeUpdate();
-        }catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-    }
-
-
-    public int getLastBookId(String title, String author,String isbn) throws SQLException {
-        String sql = "INSERT INTO books (title, author,isbn) VALUES (?, ?,?)";
-        try (Connection conn = DriverManager.getConnection(DB_URL);
-             PreparedStatement stmt = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
-            stmt.setString(1, title);
-            stmt.setString(2, author);
-            stmt.setString(3, isbn);
-            stmt.executeUpdate();
-            return stmt.getGeneratedKeys().getInt(1);
-        }
-    }
-
-    public String getTermForStudent(int studentId) {
-        String term = null; // Will store the student_id if found
-        String query = "SELECT term " + "FROM borrowings " + "WHERE borrowings.student_id = ? AND borrowings.returned = 0 " + "LIMIT 1";
-        try (Connection connection = DriverManager.getConnection(DB_URL);
-             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-            // Set the student name parameter
-            preparedStatement.setInt(1, studentId);
-            // Execute the query
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                // If a result is found, get the student_id
-                if (resultSet.next()) { term = resultSet.getString("term");
-                }
-            }
-        }
-        catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return term;
-    }
 
 
     public void exportUniqueBookTitlesToFile(File file) {
@@ -1733,21 +1647,7 @@ public void clearReturnStatusForBooks(int borrowerId, Map<Integer, Integer> quan
         return "N/A";
     }
 
-    public String getCurrentUserEmail() {
-        String sql = "SELECT email FROM users LIMIT 1";
 
-        try (Connection conn = DriverManager.getConnection(DB_URL);
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-
-            if (rs.next()) {
-                return rs.getString("email");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return "N/A";
-    }
 
     public String getCurrentUserPassword() {
         String sql = "SELECT password FROM users LIMIT 1";
@@ -1939,33 +1839,8 @@ public void clearReturnStatusForBooks(int borrowerId, Map<Integer, Integer> quan
             return false;
         }
     }
-    public boolean validateUser(String librarian, String password) {
-        String sql = "SELECT COUNT(*) FROM users WHERE librarian = ? AND password = ?";
-        try (Connection conn = DriverManager.getConnection(DB_URL);
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, librarian);
-            stmt.setString(2, password);
-            ResultSet rs = stmt.executeQuery();
-            return rs.next() && rs.getInt(1) == 1;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
 
-    public boolean resetCredentials(String email, String librarianName, String newPassword) {
-        String sql = "UPDATE users SET password = ? WHERE email = ? AND librarian = ?";
-        try (Connection conn = DriverManager.getConnection(DB_URL);
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, newPassword);
-            stmt.setString(2, email);
-            stmt.setString(3, librarianName);
-            return stmt.executeUpdate() == 1;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
+
     public String fetchSchoolName() {
         String sql = "SELECT school FROM users LIMIT 1"; // Assumes single-school setup
         try (Connection conn = DriverManager.getConnection(DB_URL);

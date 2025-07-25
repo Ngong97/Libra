@@ -44,7 +44,7 @@ public class SplashScreen extends Application {
         content.setAlignment(Pos.CENTER);
         content.setId("splash-root");
 
-        Scene scene = new Scene(content, 600, 600);
+        Scene scene = new Scene(content, 500, 500);
         scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
 
         primaryStage.initStyle(StageStyle.UNDECORATED);
