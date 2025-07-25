@@ -65,7 +65,7 @@ public class SignUpWindow extends Application {
         sd.setColor(Color.BLACK); // Set shadow color and transparency
 // Sign Up Button
         Button signUpButton = new Button("Submit");
-//        signUpButton.getStyleClass().add("signup-button");
+        signUpButton.setDefaultButton(true);
         signUpButton.setEffect(sd);
         signUpButton.setOnMouseEntered(event -> {
             signUpButton.setScaleX(1.1);
@@ -141,9 +141,30 @@ public class SignUpWindow extends Application {
         layout.getChildren().addAll( sloganBox,new Separator(),usernameLabel, usernameField,passwordLabel,passwordBox,schoolNameLabel,schoolNameField,new Label(),buttonBox );
 //        layout.getStyleClass().add("form-layout");
         // Register button event handler
-        signUpButton.setOnAction(event -> {
+//        signUpButton.setOnAction(event -> {
+//
+//            if (!usernameField.getText().isBlank()&&!passwordField.getText().isBlank()) {
+//                layout.setDisable(true);
+//                usernameLabel.setDisable(true);
+//                usernameField.setDisable(true);
+//                passwordLabel.setDisable(true);
+//                passwordField.setDisable(true);
+//                signUpButton.setDisable(true);
+//
+//                showLoadingPopUp(primaryStage);
+//                // Get username and password from the text fields
+//                String username = usernameField.getText();
+//                String password = passwordField.getText();
+//                String school=schoolNameField.getText();
+//                // Save username and password to the user table in the database
+//                db.saveUserToDatabase(username, password,school);
+//            }
+//
+//        });
 
-            if (!usernameField.getText().isBlank()&&!passwordField.getText().isBlank()) {
+        signUpButton.setOnAction(event -> {
+            if (!usernameField.getText().isBlank() && !passwordField.getText().isBlank()) {
+
                 layout.setDisable(true);
                 usernameLabel.setDisable(true);
                 usernameField.setDisable(true);
@@ -151,16 +172,28 @@ public class SignUpWindow extends Application {
                 passwordField.setDisable(true);
                 signUpButton.setDisable(true);
 
-                showLoadingPopUp(primaryStage);
-                // Get username and password from the text fields
+                // Get user input
                 String username = usernameField.getText();
                 String password = passwordField.getText();
-                String school=schoolNameField.getText();
-                // Save username and password to the user table in the database
-                db.saveUserToDatabase(username, password,school);
-            }
+                String school = schoolNameField.getText();
 
+                // Attempt to save user and get back result
+                boolean success = db.saveUserToDatabase(username, password, school);
+
+                if (success) {
+                    showLoadingPopUp(primaryStage);
+                } else {
+                    // Optional: log, show silent failure, or re-enable UI
+                    layout.setDisable(false);
+                    usernameLabel.setDisable(false);
+                    usernameField.setDisable(false);
+                    passwordLabel.setDisable(false);
+                    passwordField.setDisable(false);
+                    signUpButton.setDisable(false);
+                }
+            }
         });
+
 
         layout.setStyle("-fx-background-color: #ECF0F1;"); // Change background color here
 

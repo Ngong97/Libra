@@ -1976,23 +1976,26 @@ public void clearReturnStatusForBooks(int borrowerId, Map<Integer, Integer> quan
 
 
     // Method to save user data to the database
-    public void saveUserToDatabase(String username, String password, String school) {
+    public boolean saveUserToDatabase(String username, String password, String school) {
         try (Connection conn = DriverManager.getConnection(DB_URL)) {
-            String sql = "INSERT INTO users (librarian, password,school) VALUES (?,?,?)";
+            String sql = "INSERT INTO users (librarian, password, school) VALUES (?, ?, ?)";
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, username);
                 pstmt.setString(2, password);
                 pstmt.setString(3, school);
                 pstmt.executeUpdate();
+                return true; // ✅ Data saved successfully
             }
         } catch (SQLException e) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("");
+            alert.setTitle("Database Error");
             alert.setHeaderText(null);
             alert.setContentText(e.getMessage());
-            e.getSuppressed();
+            alert.show();
+            return false; // ❌ Something went wrong
         }
     }
+
 
     public List<BookInfo> getBookDetailsForTitleStartingWith(String prefix) {
         List<BookInfo> books = new ArrayList<>();

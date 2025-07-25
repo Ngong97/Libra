@@ -357,7 +357,7 @@ public class SettingsView extends BorderPane {
             }
 
 
-            Path recoveryFolder = Paths.get(System.getProperty("user.home"), "recoveryTool");
+            Path recoveryFolder = Paths.get(System.getProperty("user.home"), "LDB_recoveryTool");
             try {
                 Files.createDirectories(recoveryFolder); // Ensure folder is created
             } catch (IOException ex) {

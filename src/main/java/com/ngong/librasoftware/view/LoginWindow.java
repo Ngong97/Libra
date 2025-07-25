@@ -57,7 +57,6 @@ public class LoginWindow extends Application {
 
         // Login button
         Button loginButton = new Button("Login");
-
         loginButton.setDefaultButton(true);
         loginButton.setPrefWidth(200);
         loginButton.setStyle("-fx-background-color: #1a73e8; -fx-text-fill: white; -fx-font-weight: bold;");
