@@ -5,6 +5,7 @@ import com.ngong.librasoftware.DAO.DatabaseService;
 import com.ngong.librasoftware.model.BookInfo;
 import com.ngong.librasoftware.model.SnackbarForRegistration;
 import com.ngong.librasoftware.utils.AnimationUtils;
+import com.ngong.librasoftware.utils.UIUtils;
 import com.ngong.librasoftware.utils.WarningMessage;
 import javafx.animation.ScaleTransition;
 import javafx.collections.FXCollections;
@@ -16,7 +17,6 @@ import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.effect.DropShadow;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -70,7 +70,13 @@ public class CheckOutView extends HBox {
 
     public CheckOutView(Pane contentArea) {
 
+        String redBorder = "-fx-border-color: red; -fx-border-width: 2px;";
+        String defaultBorderStyle = ""; // Or your base styling
+
+
+
         bookList.setMaxHeight(300);
+        bookList.setStyle("-fx-font-size: 16;-fx-cursor: hand;");
         titleClickBox.setStyle("""
             -fx-background-color: white;
             -fx-border-color: #ccc;
@@ -118,7 +124,7 @@ public class CheckOutView extends HBox {
 
         DatabaseService db = new DatabaseService();
         this.contentArea = contentArea;
-        this.setSpacing(40);
+        this.setSpacing(70);
         this.setPadding(new Insets(24));
 
 
@@ -267,6 +273,22 @@ public class CheckOutView extends HBox {
             }
 
 
+//            boolean exists = db.doesStudentIdExistAndHasUncleared(newText.trim());
+//            if (exists) {
+//                studentName.setStyle(redBorder);
+//                WarningMessage msg = new WarningMessage(
+//                        "A student with same name has not cleared",
+//                        Duration.seconds(5),
+//                        contentArea // Your layout container
+//                );
+//
+//                contentArea.getChildren().add(msg);
+//                StackPane.setAlignment(msg, Pos.CENTER);
+//
+//            } else {
+//                studentName.setStyle(defaultBorderStyle);
+//            }
+
         });
 
 
@@ -319,9 +341,6 @@ public class CheckOutView extends HBox {
             }
         });
 
-        String redBorder = "-fx-border-color: red; -fx-border-width: 2px;";
-        String defaultBorderStyle = ""; // Or your base styling
-
         studentID.textProperty().addListener((obs, oldVal, newVal) -> {
 
 
@@ -330,7 +349,7 @@ public class CheckOutView extends HBox {
                 return;
             }
 
-            boolean exists = db.doesStudentIdExist(newVal.trim());
+            boolean exists = db.doesStudentIdExistAndHasUncleared(newVal.trim());
             if (exists) {
                 studentID.setStyle(redBorder);
                 WarningMessage msg = new WarningMessage(
@@ -410,7 +429,6 @@ public class CheckOutView extends HBox {
 
         String lastTerm = db.getLastUsedTerm(); // You create this method
         termBox.setValue(lastTerm != null ? lastTerm : "Term I");
-//        studentForm.getChildren().add(termBox);
 
         termBox.addEventFilter(ScrollEvent.SCROLL, event -> {
             ObservableList<String> items = termBox.getItems();
@@ -715,22 +733,21 @@ public class CheckOutView extends HBox {
         });
 
 
-        TextField duration = new TextField("1");
-        duration.setPromptText("0 days");
+        TextField duration = new TextField();
+        duration.setPromptText("Duration in days");
         duration.getStyleClass().add("settings-textfield");
 
         duration.setOnScroll(event -> {
             try {
                 int currentValue = Integer.parseInt(duration.getText());
-
                 if (event.getDeltaY() > 0) {
                     currentValue++; // Scroll up
                 } else {
                     currentValue--; // Scroll down
                 }
 
-                if (currentValue < 0) {
-                    currentValue = 0;
+                if (currentValue < 1) {
+                    currentValue = 1;
                 }
 
                 duration.setText(String.valueOf(currentValue));
@@ -750,7 +767,7 @@ public class CheckOutView extends HBox {
 
             } catch (NumberFormatException e) {
                 // Optional: reset to 0 if input is invalid
-                duration.setText("0");
+                duration.setText("1");
             }
         });
 
@@ -881,7 +898,14 @@ public class CheckOutView extends HBox {
                     ? db.generateFallbackIsbn(newTitle, newTitle)
                     : isbn.getText();
 
-            String newDuration = duration.getText();
+            String newDuration = "";
+            if (duration.getText().isEmpty()){
+                newDuration="1";
+            }else {
+                newDuration = duration.getText();
+            }
+
+//            duration.setText("1");
             int quantity = teacherCheckBox.isSelected() ? Integer.parseInt(quantityComboBox.getValue().replaceAll("[^0-9]", "")) : 1;
 
                     if (!newTitle.isBlank() && !newAuthor.isBlank()) {
@@ -957,7 +981,7 @@ public class CheckOutView extends HBox {
                             }
                         }
 
-                        bookTitleField.clear(); author.clear(); isbn.clear(); duration.clear();
+                        bookTitleField.clear(); author.clear(); isbn.clear();
                         quantityComboBox.setValue("1 Copies");
                     }else {
                         WarningMessage msg = new WarningMessage(
@@ -977,11 +1001,10 @@ public class CheckOutView extends HBox {
 
 
         Button refresh = new Button();
-        Image refreshIcon = new Image(getClass().getResource("/images/clear2.png").toString()); // Create a BackgroundImage with the loaded image
-        ImageView refreshIconView = new ImageView(refreshIcon);
-        refreshIconView.setFitWidth(40);
-        refreshIconView.setFitHeight(40);
-        refresh.setGraphic(refreshIconView);
+//        Image refreshIcon = new Image(getClass().getResource("/images/clear.png").toString()); // Create a BackgroundImage with the loaded image
+        ImageView refreshIcon = UIUtils.loadExternalImageView("/images/clear.png",40,40);
+
+        refresh.setGraphic(refreshIcon);
         Tooltip refreshtooltip = new Tooltip("Clear Fields");
 //        refreshtooltip.getStyleClass().add("nav-tooltip");
         refreshtooltip.setShowDelay(Duration.millis(100));
@@ -1017,28 +1040,6 @@ public class CheckOutView extends HBox {
 
 
         //...........................................
-
-
-
-//        bookList.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-//            selectedIndex = bookList.getSelectionModel().getSelectedIndex();
-//            if (newVal != null) {
-//                for (BookEntry2 entry : selectedBooks) {
-//                    System.out.println("The quantity is: "+entry.quantity);
-//
-//                    String summary = entry.title + " — " + entry.author + " ("+entry.quantity+" Copies"+")";
-//                    if (summary.equals(newVal)) {
-//                        bookTitleField.setText(entry.title);
-//                        author.setText(entry.author);
-//                        isbn.setText(entry.isbn);
-//                        duration.setText(entry.duration);
-//                        quantityComboBox.setValue(String.valueOf(entry.quantity));
-//                        break;
-//                    }
-//                }
-//            }
-//        });
-
 
 
         bookList.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
@@ -1162,11 +1163,11 @@ public class CheckOutView extends HBox {
         );
 
         // --- Submit button
-        ImageView confirmIcon = new ImageView(new Image(getClass().getResource("/images/book-out.png").toExternalForm()));
-        confirmIcon.setFitWidth(40);
-        confirmIcon.setFitHeight(40);
+//        ImageView confirmIcon = new ImageView(new Image(getClass().getResource("/images/book-out.png").toExternalForm()));
+        ImageView confirmIcon = UIUtils.loadExternalImageView("/images/book-out.png",40,40);
+
         Button issueBooks = new Button();
-        Tooltip tooltip = new Tooltip("✅ Confirm & Issue");
+        Tooltip tooltip = new Tooltip("Confirm & Issue");
         tooltip.getStyleClass().add("nav-tooltip");
         tooltip.setShowDelay(Duration.millis(100));
         tooltip.setHideDelay(Duration.millis(100));
@@ -1192,6 +1193,9 @@ public class CheckOutView extends HBox {
             String student_Id =  studentID.getText();
             String student_gender = studentGender.getValue();
             String student_class = studentClass.getValue();
+
+
+
             String student_term = termBox.getValue();
 
             if (student_name.isEmpty() || student_Id.isEmpty() || student_gender.isEmpty()
@@ -1205,7 +1209,7 @@ public class CheckOutView extends HBox {
                 contentArea.getChildren().add(msg);
                 StackPane.setAlignment(msg, Pos.CENTER);
                 return;
-            }else if (db.doesStudentIdExist(student_Id)){
+            }else if (db.doesStudentIdExistAndHasUncleared(student_Id)){
 
                 WarningMessage msg = new WarningMessage(
                         "Please, you can't reuse Identity without clearance!",

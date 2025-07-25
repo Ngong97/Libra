@@ -3,6 +3,7 @@ package com.ngong.librasoftware.view;
 
 import com.ngong.librasoftware.DAO.DatabaseService;
 import com.ngong.librasoftware.utils.AnimationUtils;
+import com.ngong.librasoftware.utils.UIUtils;
 import javafx.animation.*;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -35,10 +36,6 @@ public class DashboardView extends VBox {
     private int activityIndex = 0;
 
     public DashboardView(Pane contentArea) {
-
-        System.out.println("The details are correct: "+db.checkCredentials("ngong","admin"));
-        System.out.println("The current borrowed books are: "+db.countOverdueBooks("","","","",null,"",""));
-
         bookHoverContent.setStyle("""
         -fx-background-color: white;
         -fx-border-color: #ccc;
@@ -191,6 +188,8 @@ public class DashboardView extends VBox {
         ImageView profileImage = new ImageView(new Image(getClass().getResource("/images/user.png").toExternalForm()));
         profileImage.setFitWidth(32);
         profileImage.setFitHeight(32);
+//        ImageView profileImage = UIUtils.loadExternalImageView("/images/search.png",32,32);
+
         profileImage.setPreserveRatio(true);
         profileImage.setStyle("-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 4, 0, 0, 1);");
 
@@ -297,9 +296,9 @@ private void showBookHoverPopup(MouseEvent event, String bookTitle) {
 
     Image coverImage;
     try {
-        coverImage = new Image(getClass().getResource(imagePath).toExternalForm());
+        coverImage = UIUtils.loadExternalImage(imagePath);
     } catch (Exception e) {
-        coverImage = new Image(getClass().getResource("/images/covers/default_cover.png").toExternalForm());
+        coverImage = UIUtils.loadExternalImage("/images/default_cover.png");
     }
 
     // 🖼 Cover image

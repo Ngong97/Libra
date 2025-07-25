@@ -3,6 +3,8 @@ package com.ngong.librasoftware.Controller;
 import com.ngong.librasoftware.DAO.DatabaseService;
 import com.ngong.librasoftware.model.PendingBook;
 import com.ngong.librasoftware.utils.TransientMessage;
+import com.ngong.librasoftware.utils.UIUtils;
+import com.ngong.librasoftware.utils.WarningMessage;
 import com.ngong.librasoftware.view.*;
 import javafx.animation.FadeTransition;
 import javafx.application.Application;
@@ -22,6 +24,7 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.util.List;
+import java.util.Optional;
 
 public class DashboardApp extends Application {
     private final DatabaseService db = new DatabaseService();
@@ -32,6 +35,7 @@ public class DashboardApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        UIUtils.applyAppIcon(primaryStage);
         contentArea = new StackPane();
         BorderPane root = new BorderPane();
         root.setCenter(contentArea);
@@ -47,7 +51,7 @@ public class DashboardApp extends Application {
         Button dashboardBtn = createNavButton("Dashboard", "/images/dashboard.png");
         dashboardBtn.getStyleClass().add("selected");
 
-        Button booksBtn = createNavButton("Inventory", "/images/books2.png");
+        Button booksBtn = createNavButton("Inventory", "/images/books.png");
         Button studentsBtn = createNavButton("Students", "/images/reading.png");
         Button checkoutBtn = createNavButton("Hand book out", "/images/addstudent.png");
         Button statsBtn = createNavButton("Statistics", "/images/statistics.png");
@@ -91,9 +95,35 @@ public class DashboardApp extends Application {
         });
 
         settingsBtn.setOnAction(e -> {
-            contentArea.getChildren().setAll(new SettingsView());
-            setSelectedNav(settingsBtn, navButtons);
+            // Step 1: Prompt for password
+            TextInputDialog passwordDialog = new TextInputDialog();
+            passwordDialog.setTitle("Authentication Required");
+            passwordDialog.setHeaderText("Enter your password to access settings");
+            passwordDialog.setContentText("Password:");
+
+            Optional<String> passwordInput = passwordDialog.showAndWait();
+            if (passwordInput.isEmpty()) return; // Cancelled
+
+            String password = passwordInput.get().trim();
+
+            // Step 2: Verify password via your DatabaseService
+            if (db.isValidPassword(password)) {
+                contentArea.getChildren().setAll(new SettingsView());
+                setSelectedNav(settingsBtn, navButtons);
+            } else {
+                WarningMessage msg = new WarningMessage(
+                        "Incorrect password. Access denied.",
+                        Duration.seconds(3),
+                        contentArea
+                );
+                contentArea.getChildren().add(msg);
+            }
         });
+
+//        settingsBtn.setOnAction(e -> {
+//            contentArea.getChildren().setAll(new SettingsView());
+//            setSelectedNav(settingsBtn, navButtons);
+//        });
 
         aboutBtn.setOnAction(e -> {
             contentArea.getChildren().setAll(new AboutView());

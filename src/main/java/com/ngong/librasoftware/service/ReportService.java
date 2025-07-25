@@ -80,9 +80,9 @@ public class ReportService {
 
 
         doc.add(new Paragraph("📊 Statistics:", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14)));
-        doc.add(new Paragraph("• Registered Books: " + data.getRegistered()));
-        doc.add(new Paragraph("• Borrowed Books: " + data.getBorrowed()));
-        doc.add(new Paragraph("• Remaining Books: " + data.getRemaining()));
+        doc.add(new Paragraph("• Registered Books: " + db.getRegisteredBooksNo()));
+        doc.add(new Paragraph("• Borrowed Books: " + db.countOverdueBooks("","","","",null,"","")));
+        doc.add(new Paragraph("• Remaining Books: " + db.getRemainingBooksNo()));
 
 
         doc.add(Chunk.NEWLINE);

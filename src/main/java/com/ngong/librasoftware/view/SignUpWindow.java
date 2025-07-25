@@ -1,6 +1,7 @@
 package com.ngong.librasoftware.view;
 
 import com.ngong.librasoftware.DAO.DatabaseService;
+import com.ngong.librasoftware.utils.UIUtils;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -9,7 +10,6 @@ import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.effect.DropShadow;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -31,24 +31,20 @@ public class SignUpWindow extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        Image icon = new Image(getClass().getResource("/images/books.png").toString()); // Create a BackgroundImage with the loaded image
-        primaryStage.getIcons().add(icon);
+        UIUtils.applyAppIcon(primaryStage);
         primaryStage.setTitle("Sign Up Form"); // Labels
         Label usernameLabel = new Label("Username:");
         usernameLabel.setStyle("-fx-font-weight: bold;-fx-font-family: Consolas;-fx-font-size: 18");
         Label passwordLabel = new Label("Password:");
         passwordLabel.setStyle("-fx-font-weight: bold;-fx-font-family: Consolas;-fx-font-size: 18");
-        Label emailLabel = new Label("E-mail:"); // Input Fields
-        emailLabel.setStyle("-fx-font-weight: bold;-fx-font-family: Consolas;-fx-font-size: 18");
+
         TextField usernameField = new TextField();
         usernameField.setPromptText("Enter your username");
         usernameField.setMaxWidth(250);
         PasswordField passwordField = new PasswordField();
         passwordField.setPromptText("Enter your password");
         passwordField.setPrefWidth(300);
-        TextField emailField = new TextField();
-        emailField.setPromptText("Enter your email");
-        emailField.setMaxWidth(250);
+
 
 
         Label schoolNameLabel = new Label("School Name:"); // Input Fields
@@ -100,11 +96,10 @@ public class SignUpWindow extends Application {
         passtextfield.setVisible(false);
 
         Hyperlink showpassword=new Hyperlink();
-        Image closedeyeIcon = new Image(getClass().getResource("/images/closedeye.png").toString()); // Create a BackgroundImage with the loaded image
-        ImageView closedeyeIconView = new ImageView(closedeyeIcon);
-        closedeyeIconView.setFitWidth(25); // Set the width
-        closedeyeIconView.setFitHeight(25); // Set the height
-        showpassword.setGraphic(closedeyeIconView);
+//        Image closedeyeIcon = new Image(getClass().getResource("/images/closedeye.png").toString()); // Create a BackgroundImage with the loaded image
+        ImageView closedeyeIcon = UIUtils.loadExternalImageView("/images/closedeye.png",25,25);
+
+        showpassword.setGraphic(closedeyeIcon);
         showpassword.setStyle("-fx-font-size: 13;-fx-font-weight: bolder;");
 
         showpassword.setOnAction(ev ->{
@@ -115,11 +110,10 @@ public class SignUpWindow extends Application {
                 passwordField.setVisible(false);
 //                showpassword.setText("Hide");
 
-                Image openeyeIcon = new Image(getClass().getResource("/images/openeye.png").toString()); // Create a BackgroundImage with the loaded image
-                ImageView openeyeIconView = new ImageView(openeyeIcon);
-                openeyeIconView.setFitWidth(25); // Set the width
-                openeyeIconView.setFitHeight(25); // Set the height
-                showpassword.setGraphic(openeyeIconView);
+//                Image openeyeIcon = new Image(getClass().getResource("/images/openeye.png").toString()); // Create a BackgroundImage with the loaded image
+                ImageView openeyeIcon = UIUtils.loadExternalImageView("/images/openeye.png",25,25);
+
+                showpassword.setGraphic(openeyeIcon);
 
             }
             else {
@@ -128,11 +122,10 @@ public class SignUpWindow extends Application {
                 passwordField.setVisible(true);
 //                showpassword.setText("Show");
 
-                Image closedeyeIcon2 = new Image(getClass().getResource("/images/closedeye.png").toString()); // Create a BackgroundImage with the loaded image
-                ImageView closedeyeIconView2 = new ImageView(closedeyeIcon2);
-                closedeyeIconView2.setFitWidth(25); // Set the width
-                closedeyeIconView2.setFitHeight(25); // Set the height
-                showpassword.setGraphic(closedeyeIconView2);
+//                Image closedeyeIcon2 = new Image(getClass().getResource("/images/closedeye.png").toString()); // Create a BackgroundImage with the loaded image
+                ImageView closedeyeIcon2 = UIUtils.loadExternalImageView("/images/closedeye.png",25,25);
+
+                showpassword.setGraphic(closedeyeIcon2);
 
             }
         });
@@ -145,44 +138,48 @@ public class SignUpWindow extends Application {
         VBox layout = new VBox(10);
 // Spacing between elements
         layout.setPadding(new Insets(20));
-        layout.getChildren().addAll( sloganBox,new Separator(),usernameLabel, usernameField,passwordLabel,passwordBox, emailLabel, emailField,schoolNameLabel,schoolNameField,new Label(),buttonBox );
+        layout.getChildren().addAll( sloganBox,new Separator(),usernameLabel, usernameField,passwordLabel,passwordBox,schoolNameLabel,schoolNameField,new Label(),buttonBox );
 //        layout.getStyleClass().add("form-layout");
         // Register button event handler
         signUpButton.setOnAction(event -> {
 
-            if (!usernameField.getText().isBlank()&&!passwordField.getText().isBlank()&&!emailField.getText().isBlank()) {
+            if (!usernameField.getText().isBlank()&&!passwordField.getText().isBlank()) {
                 layout.setDisable(true);
                 usernameLabel.setDisable(true);
                 usernameField.setDisable(true);
                 passwordLabel.setDisable(true);
                 passwordField.setDisable(true);
-                emailField.setDisable(true);
                 signUpButton.setDisable(true);
 
                 showLoadingPopUp(primaryStage);
                 // Get username and password from the text fields
                 String username = usernameField.getText();
                 String password = passwordField.getText();
-                String email = emailField.getText();
                 String school=schoolNameField.getText();
                 // Save username and password to the user table in the database
-                db.saveUserToDatabase(username, password, email,school);
+                db.saveUserToDatabase(username, password,school);
             }
 
         });
 
         layout.setStyle("-fx-background-color: #ECF0F1;"); // Change background color here
 
+        titleLabel.setId("titleLabel");
+        sloganBox.setId("sloganBox");
+        buttonBox.setId("buttonBox");
+
+        usernameLabel.getStyleClass().add("label");
+        usernameField.getStyleClass().add("text-field");
+        signUpButton.getStyleClass().add("button");
+
+
         // Set scene and show stage
         Scene scene = new Scene(layout, 355, 420);
+        scene.getStylesheets().add(getClass().getResource("/signup.css").toExternalForm());
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
         primaryStage.show();
     }
-
-
-
-
 
     private void showLoadingPopUp(Stage primarystage) {
         Stage popup = new Stage();

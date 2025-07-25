@@ -5,7 +5,7 @@ import com.ngong.librasoftware.DAO.DatabaseService;
 import com.ngong.librasoftware.model.SnackbarForRegistration;
 import com.ngong.librasoftware.model.StudentRecord;
 import com.ngong.librasoftware.utils.AnimationUtils;
-import com.ngong.librasoftware.utils.TransientMessage;
+import com.ngong.librasoftware.utils.UIUtils;
 import com.ngong.librasoftware.utils.WarningMessage;
 import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
@@ -22,7 +22,6 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.DropShadow;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
@@ -59,15 +58,16 @@ public class StudentsView extends VBox {
     private TableView<StudentRecord> table;
 
     public StudentsView(Pane contentArea) {
-        System.out.println("Made some changes");
         this.setPadding(new Insets(20));
         this.setSpacing(10);
         this.contentArea = contentArea;
 
 
-        ImageView searchIcon = new ImageView(new Image(getClass().getResource("/images/search.png").toExternalForm()));
-        searchIcon.setFitHeight(16);
-        searchIcon.setFitWidth(16);
+//        ImageView searchIcon = new ImageView(new Image(getClass().getResource("/images/search.png").toExternalForm()));
+//          searchIcon.setFitWidth(16);
+//          searchIcon.setFitHeight(16);
+        ImageView searchIcon = UIUtils.loadExternalImageView("/images/search.png",16,16);
+
 
         TextField nameSearch = new TextField();
         nameSearch.setPromptText("Search records...");
@@ -102,9 +102,9 @@ public class StudentsView extends VBox {
         blackShadow.setColor(Color.BLACK); // Set shadow color and transparency
 
 
-        ImageView undoIcon = new ImageView(new Image(getClass().getResource("/images/undo.png").toExternalForm()));
-        undoIcon.setFitWidth(35);
-        undoIcon.setFitHeight(30);
+//        ImageView undoIcon = new ImageView(new Image(getClass().getResource("/images/undo.png").toExternalForm()));
+        ImageView undoIcon = UIUtils.loadExternalImageView("/images/undo.png",35,30);
+
 
         Hyperlink undoClearanceBtn = new Hyperlink();
         undoClearanceBtn.setGraphic(undoIcon);
@@ -161,9 +161,9 @@ public class StudentsView extends VBox {
         undoClearanceBtn.setStyle("-fx-font-family: Consolas;" +      // Set font family
                 "-fx-font-size: 14;" +
                 "-fx-border-radius: 10");
-        ImageView inIcon = new ImageView(new Image(getClass().getResource("/images/book-in2.png").toExternalForm()));
-        inIcon.setFitWidth(35);
-        inIcon.setFitHeight(30);
+//        ImageView inIcon = new ImageView(new Image(getClass().getResource("/images/book-in2.png").toExternalForm()));
+        ImageView inIcon = UIUtils.loadExternalImageView("/images/book-in2.png",35,30);
+
         Hyperlink checkIn = new Hyperlink();
         checkIn.setGraphic(inIcon);
         checkIn.setCursor(Cursor.HAND);
@@ -214,9 +214,9 @@ public class StudentsView extends VBox {
         // Left side: action buttons
 
         Hyperlink save = new Hyperlink();
-        ImageView download = new ImageView(new Image(getClass().getResource("/images/downloadIcon.png").toExternalForm()));
-        download.setFitWidth(35);
-        download.setFitHeight(30);
+//        ImageView download = new ImageView(new Image(getClass().getResource("/images/downloadIcon.png").toExternalForm()));
+        ImageView download = UIUtils.loadExternalImageView("/images/downloadIcon.png",35,30);
+
         save.setGraphic(download);
         save.setCursor(Cursor.HAND);
 
@@ -277,9 +277,9 @@ public class StudentsView extends VBox {
 
         Hyperlink copyTable = new Hyperlink();
         copyTable.getStyleClass().add("button");
-        ImageView copy = new ImageView(new Image(getClass().getResource("/images/copyIcon.png").toExternalForm()));
-        copy.setFitWidth(35);
-        copy.setFitHeight(30);
+//        ImageView copy = new ImageView(new Image(getClass().getResource("/images/copyIcon.png").toExternalForm()));
+        ImageView copy = UIUtils.loadExternalImageView("/images/copyIcon.png",35,30);
+
         copyTable.setGraphic(copy);
         copyTable.setCursor(Cursor.HAND);
 
@@ -379,23 +379,11 @@ public class StudentsView extends VBox {
 
         buildTableColumns();
 
-        addExpandableDetails();
         table.setRowFactory(tv -> {
             TableRow<StudentRecord> row = new TableRow<>();
             row.setOnMouseClicked(event -> {
                 if (event.getClickCount() == 2 && !row.isEmpty()) {
                     StudentRecord selectedItem = row.getItem();
-                    if (selectedItem == null) {
-                        TransientMessage msg = new TransientMessage(
-                                "📡 Connect to internet to load book descriptions.",
-                                Duration.seconds(4),
-                                this // ← Your layout (e.g. StackPane, VBox, etc.)
-                        );
-
-                        this.getChildren().add(msg);
-                        StackPane.setAlignment(msg, Pos.TOP_CENTER);
-                        return;
-                    }
                     new EditStudentPopup(selectedItem, () -> {
                         contentArea.getChildren().setAll(new StudentsView(contentArea));
                     }).show();
@@ -836,24 +824,6 @@ public class StudentsView extends VBox {
             // Add padding and cap max width
             column.setPrefWidth(Math.min(max + 30, 300));
         }
-    }
-
-
-    private void addExpandableDetails() {
-
-
-//        table.setRowFactory(tv -> {
-//            TableRow<StudentRecord> row = new TableRow<>();
-//            row.itemProperty().addListener((obs, oldItem, newItem) -> {
-//                if (newItem != null) {
-//                    System.out.println("Row item set: " + newItem.getStudentName());
-//                }
-//            });
-//            return row;
-//        });
-
-
-
     }
 
 }

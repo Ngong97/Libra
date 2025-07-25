@@ -3,6 +3,7 @@ package com.ngong.librasoftware.view;
 import com.ngong.librasoftware.DAO.DatabaseService;
 import com.ngong.librasoftware.model.CheckInEntry;
 import com.ngong.librasoftware.model.StudentRecord;
+import com.ngong.librasoftware.utils.UIUtils;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -19,24 +20,92 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.util.List;
+import java.util.function.UnaryOperator;
 
 public class EditStudentPopup extends Stage {
 
     public EditStudentPopup(StudentRecord student, Runnable onUpdate) {
         setTitle("Edit Student");
+        UIUtils.applyAppIcon(this);
         DatabaseService db = new DatabaseService();
 
         // Student Info
         TextField name = new TextField(student.nameProperty().get());
         name.setStyle("-fx-pref-width: 300;-fx-padding: 6 10;-fx-background-radius: 6;-fx-border-radius: 6;-fx-border-color: #ccc;-fx-background-color: #fff;-fx-font-size: 14;");
+        UnaryOperator<TextFormatter.Change> filter = change -> {
+            String newText = change.getControlNewText();
+            if (newText.isEmpty()) {
+                return change;
+            }
+            StringBuilder result = new StringBuilder();
+            boolean capitalizeNext = true;
+            for (char c : newText.toCharArray()) {
+                if (Character.isWhitespace(c)) {
+                    result.append(c);
+                    capitalizeNext = true;
+                } else if (capitalizeNext) {
+                    result.append(Character.toUpperCase(c));
+                    capitalizeNext = false;
+                } else {
+                    result.append(Character.toLowerCase(c));
+                }
+            }
+            change.setText(result.toString());
+            change.setRange(0, change.getControlText().length());
+            return change;
+        };
+        // Apply the formatter to the text field
+        TextFormatter<String> textFormatter = new TextFormatter<>(filter);
+        name.setTextFormatter(textFormatter);
+
+
+
+
         TextField id = new TextField(student.getIdentity());
         id.setStyle("-fx-pref-width: 300;-fx-padding: 6 10;-fx-background-radius: 6;-fx-border-radius: 6;-fx-border-color: #ccc;-fx-background-color: #fff;-fx-font-size: 14;");
+        id.textProperty().addListener((obs, oldText, newText) -> {
+            if (!newText.equals(newText.toUpperCase())) {
+                int caretPos = id.getCaretPosition();
+                id.setText(newText.toUpperCase());
+                id.positionCaret(caretPos); // preserve caret position
+            }
+        });
 
 //        ComboBox<String> gender = new ComboBox<>(FXCollections.observableArrayList("Male", "Female"));
         ComboBox<String> gender = new ComboBox<>();
         gender.getItems().addAll(db.getAllStudentGenders());
         gender.setStyle("-fx-pref-width: 300;-fx-padding: 6 10;-fx-background-radius: 6;-fx-border-radius: 6;-fx-border-color: #ccc;-fx-background-color: #fff;-fx-font-size: 14;");
-        gender.setValue(student.genderProperty().get()); gender.setEditable(true);
+        gender.setValue(student.genderProperty().get());
+        gender.setEditable(true);
+
+// Create the TextFormatter
+        UnaryOperator<TextFormatter.Change> genderfilter = change -> {
+            String newText = change.getControlNewText();
+            if (newText.isEmpty()) return change;
+
+            StringBuilder result = new StringBuilder();
+            boolean capitalizeNext = true;
+            for (char c : newText.toCharArray()) {
+                if (Character.isWhitespace(c)) {
+                    result.append(c);
+                    capitalizeNext = true;
+                } else if (capitalizeNext) {
+                    result.append(Character.toUpperCase(c));
+                    capitalizeNext = false;
+                } else {
+                    result.append(Character.toLowerCase(c));
+                }
+            }
+
+            change.setText(result.toString());
+            change.setRange(0, change.getControlText().length());
+            return change;
+        };
+
+        TextFormatter<String> formatter = new TextFormatter<>(genderfilter);
+        gender.getEditor().setTextFormatter(formatter);
+
+
 
         gender.addEventFilter(ScrollEvent.SCROLL, event -> {
             ObservableList<String> items = gender.getItems();

@@ -392,6 +392,9 @@
     -fx-border-color: #ccc;
     -fx-background-color: white;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 4, 0, 0, 1);
+    -fx-prompt-text-fill: #888;
+    -fx-font-weight: bold;
+
 }
 .search-bar:focused {
     -fx-border-color: #4a90e2;
@@ -442,8 +445,9 @@
     -fx-border-color: #ccc;
     -fx-background-color: #fff;
     -fx-font-size: 14;
+    -fx-font-weight: bold;
+    -fx-prompt-text-fill: #bfbebe;
 }
-
 .user-textfield {
     -fx-max-width: 300;
     -fx-padding: 6 10;
@@ -456,6 +460,7 @@
 
 .settings-label {
     -fx-font-size: 14;
+    -fx-font-weight: bold;
 }
 
 
@@ -467,6 +472,8 @@
     -fx-border-color: #ccc;
     -fx-background-color: #fff;
     -fx-font-size: 14;
+    -fx-font-weight: bold;
+    -fx-prompt-text-fill: #bfbebe;
 }
 /*.settings-button {*/
 /*    -fx-background-color: #3498db;*/
@@ -580,9 +587,20 @@
     -fx-font-size: 14;
 }
 
+.diff-button {
+    /*-fx-underline: false;*/
+    -fx-font-size: 20;
+    -fx-border-radius: 8;
+}
 
+.diff-button:hover {
+    -fx-background-color: #cfdcec;
+    -fx-border-radius: 8;
 
-
+}
+.diff-button.selected {
+    -fx-background-color: #cfdcec;
+}
 
 .transient-message-container {
     -fx-background-color: #2d3748;

@@ -3,6 +3,7 @@ package com.ngong.librasoftware.view;
 
 import com.ngong.librasoftware.DAO.DatabaseService;
 import com.ngong.librasoftware.utils.AnimationUtils;
+import com.ngong.librasoftware.utils.UIUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -10,7 +11,6 @@ import javafx.scene.Node;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
@@ -21,7 +21,6 @@ import javafx.stage.Popup;
 
 import java.net.URI;
 import java.time.Year;
-import java.util.List;
 
 public class AboutView extends BorderPane {
     private final Popup bookHoverPopup = new Popup();
@@ -159,28 +158,6 @@ public class AboutView extends BorderPane {
         );
         techStack.getStyleClass().add("section-box");
         techStack.setSpacing(10);
-        // 📸 Slideshow
-        List<Image> images = List.of(
-                new Image(getClass().getResource("/images/dev1.jpg").toString()),
-                new Image(getClass().getResource("/images/dev2.jpg").toString()),
-                new Image(getClass().getResource("/images/dev3.jpg").toString())
-        );
-        List<String> captions = List.of(
-                "Ngong Chol Deng – Lead Developer & Designer",
-                "Samuel K. Ajang – Backend & Data Model",
-                "Achan M. Nyanut – UI/UX Consultant"
-        );
-
-        ImageView imageView = new ImageView(images.get(0));
-        imageView.setFitWidth(500);
-        imageView.setFitHeight(160);
-        imageView.setPreserveRatio(true);
-        imageView.getStyleClass().add("slideshow-image");
-
-        Label captionLabel = new Label(captions.get(0));
-        captionLabel.getStyleClass().add("slideshow-caption");
-        Tooltip.install(captionLabel, new Tooltip("Team members behind Libra’s core features"));
-
 
 
 
@@ -215,9 +192,9 @@ public class AboutView extends BorderPane {
 
         Image coverImage;
         try {
-            coverImage = new Image(getClass().getResource(imagePath).toExternalForm());
+            coverImage = UIUtils.loadExternalImage(imagePath);
         } catch (Exception e) {
-            coverImage = new Image(getClass().getResource("/images/covers/default_cover.png").toExternalForm());
+            coverImage =UIUtils.loadExternalImage("/images/default_cover.png");
         }
 
         // 🖼 Cover image
@@ -263,9 +240,9 @@ public class AboutView extends BorderPane {
 
         Image coverImage;
         try {
-            coverImage = new Image(getClass().getResource(imagePath).toExternalForm());
+            coverImage = UIUtils.loadExternalImage(imagePath);
         } catch (Exception e) {
-            coverImage = new Image(getClass().getResource("/images/covers/default_cover.jpg").toExternalForm());
+            coverImage = UIUtils.loadExternalImage("/images/default_cover.png");
         }
 
         // 🖼 Cover image

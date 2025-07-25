@@ -18,12 +18,18 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.util.Duration;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
+import java.sql.ResultSet;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class SettingsView extends BorderPane {
@@ -38,11 +44,12 @@ public class SettingsView extends BorderPane {
         heading.getStyleClass().add("settings-heading");
 
         // Left Navigation
-        VBox navMenu = new VBox(10);
+        HBox navMenu = new HBox(10);
         navMenu.getStyleClass().add("settings-nav");
 
-        Button accountBtn = new Button("👤 Account");
+        Hyperlink accountBtn = new Hyperlink("👤 Account");
         accountBtn.setCursor(Cursor.HAND);
+        accountBtn.getStyleClass().add("diff-button");
         DropShadow blackShadow = new DropShadow();
         blackShadow.setOffsetY(2.0);
         blackShadow.setColor(Color.BLACK); // Set shadow color and transparency
@@ -51,15 +58,6 @@ public class SettingsView extends BorderPane {
         blackShadow.setOffsetY(2.0);
         blackShadow.setColor(Color.BLACK); // Set shadow color and transparency
 
-        accountBtn.setEffect(blackShadow);
-        accountBtn.setOnMouseEntered(event -> {
-            accountBtn.setScaleX(1.1);
-            accountBtn.setEffect(blueShadow);
-        });
-        accountBtn.setOnMouseExited(event -> {
-            accountBtn.setScaleX(1.0);
-            accountBtn.setEffect(blackShadow);
-        });
         ScaleTransition pressUpdate = new ScaleTransition(Duration.millis(80), accountBtn);
         pressUpdate.setToX(0.95);
         pressUpdate.setToY(0.95);
@@ -71,20 +69,11 @@ public class SettingsView extends BorderPane {
         accountBtn.setOnMousePressed(e -> pressUpdate.play());
         accountBtn.setOnMouseReleased(e -> releaseUpdate.play());
 
-        Button dbBtn = new Button("🗃️ Database");
-
+        Hyperlink dbBtn = new Hyperlink("🗃️ Database");
+        dbBtn.getStyleClass().add("diff-button");
         dbBtn.setCursor(Cursor.HAND);
 
 
-        dbBtn.setEffect(blackShadow);
-        dbBtn.setOnMouseEntered(event -> {
-            dbBtn.setScaleX(1.1);
-            dbBtn.setEffect(blueShadow);
-        });
-        dbBtn.setOnMouseExited(event -> {
-            dbBtn.setScaleX(1.0);
-            dbBtn.setEffect(blackShadow);
-        });
         ScaleTransition pressDB = new ScaleTransition(Duration.millis(80), dbBtn);
         pressDB.setToX(0.95);
         pressDB.setToY(0.95);
@@ -97,21 +86,41 @@ public class SettingsView extends BorderPane {
         dbBtn.setOnMouseReleased(e -> releaseDB.play());
 
 
-        navMenu.getChildren().addAll(accountBtn, dbBtn);
 
         // Right Content Area
         parentBox.setPadding(new Insets(20));
         parentBox.setPrefWidth(500);
 
+
+
+
+
+//        BorderPane myborderpane=showAccountSettings();
+
+
+        TitledPane accountPane = new TitledPane("Account Settings", showAccountSettings());
+        accountPane.setExpanded(false); // collapsed by default
+        accountPane.setMaxWidth(400);
+
+
+        TitledPane databasePane = new TitledPane("Database Settings", showDatabaseSettings());
+        databasePane.setExpanded(false); // collapsed by default
+        databasePane.setMaxWidth(400);
+
+
         // Default view
-        showAccountSettings();
+//        showAccountSettings();
 
         // Navigation actions
-        accountBtn.setOnAction(e -> showAccountSettings());
-        dbBtn.setOnAction(e -> showDatabaseSettings());
+//        accountBtn.setOnAction(e -> showAccountSettings());
+//        dbBtn.setOnAction(e -> showDatabaseSettings());
+
+
+        navMenu.getChildren().addAll(accountPane, databasePane);
+
 
         // Layout
-        HBox mainLayout = new HBox(navMenu, new Separator(), parentBox);
+        HBox mainLayout = new HBox(navMenu);
         mainLayout.setSpacing(20);
         mainLayout.setPadding(new Insets(20));
 
@@ -128,8 +137,12 @@ public class SettingsView extends BorderPane {
         AnimationUtils.applyFadeIn(this, 600);
     }
 
-    private void showAccountSettings() {
-        parentBox.getChildren().clear();
+    private VBox showAccountSettings() {
+
+        VBox borderPane = new VBox();
+        borderPane.setPadding(new Insets(20));
+        borderPane.setSpacing(10);
+//        parentBox.getChildren().clear();
 
         String currentName = db.getCurrentUserFullName();
         String currentPassword = db.getCurrentUserPassword();
@@ -137,7 +150,7 @@ public class SettingsView extends BorderPane {
         TextField nameField = new TextField();
         nameField.setMaxWidth(300);
         nameField.setPromptText("Enter your new name");
-        nameField.getStyleClass().add("user-textfield");
+        nameField.getStyleClass().add("recovery-input");
         nameField.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.F3 && event.isShiftDown()) {
                 IndexRange selection = nameField.getSelection();
@@ -162,7 +175,7 @@ public class SettingsView extends BorderPane {
         PasswordField passwordField = new PasswordField();
         passwordField.setMaxWidth(300);
         passwordField.setPromptText("Enter your new password");
-        passwordField.getStyleClass().add("user-textfield");
+        passwordField.getStyleClass().add("recovery-input");
 
         Label currentNameLabel=new Label("Name: ");
         Label currentPasswordLabel=new Label("Password: ");
@@ -173,6 +186,7 @@ public class SettingsView extends BorderPane {
 
         Button saveBtn = new Button("💾 Save");
         saveBtn.setCursor(Cursor.HAND);
+        saveBtn.setStyle("-fx-font-weight: bold");
         DropShadow blackShadow = new DropShadow();
         blackShadow.setOffsetY(2.0);
         blackShadow.setColor(Color.BLACK); // Set shadow color and transparency
@@ -248,14 +262,16 @@ public class SettingsView extends BorderPane {
 
         HBox currentBox=new HBox(currentIndicator,CurrentNameBox,CurrentPasswordBox);
         currentBox.setSpacing(10);
-        parentBox.getChildren().addAll(
+        borderPane.getChildren().addAll(
                 createSectionTitle("👤 Account Settings"),
                 nameFieldLabel,nameField, passwordFieldLabel,passwordField,
-                new HBox(10, saveBtn, resetBtn),
+                new HBox(20, saveBtn, resetBtn),
                 currentBox
         );
         this.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
+        this.getStylesheets().add(getClass().getResource("/recovery.css").toExternalForm());
 
+        return borderPane;
     }
 
     private String capitalizeEachWord(String input) {
@@ -267,13 +283,16 @@ public class SettingsView extends BorderPane {
     }
 
 
-    private void showDatabaseSettings() {
-        parentBox.getChildren().clear();
+    private VBox showDatabaseSettings() {
+//        parentBox.getChildren().clear();
+        VBox borderPane= new VBox();
+        borderPane.setPadding(new Insets(20));
+        borderPane.setSpacing(10);
 
-        // 📁 Backup Local Database
         Label backupLabel = new Label("Backup Local Database:");
         Button backupBtn = new Button("Backup Database");
         backupBtn.setCursor(Cursor.HAND);
+        backupBtn.setStyle("-fx-font-weight: bold;");
         DropShadow blackShadow = new DropShadow();
         blackShadow.setOffsetY(2.0);
         blackShadow.setColor(Color.BLACK); // Set shadow color and transparency
@@ -324,7 +343,7 @@ public class SettingsView extends BorderPane {
             File destination = fileChooser.showSaveDialog(this.getScene().getWindow());
 
             if (destination != null) {
-                File sourceDb = new File(System.getProperty("user.home"), "libraDB/libra.db");
+                File sourceDb = new File(System.getProperty("user.home"), "libraDB/currentDB/libra.db");
                 if (!sourceDb.exists()) {
                     new Alert(Alert.AlertType.ERROR, "Local database not found at:\n" + sourceDb.getAbsolutePath()).show();
                     return;
@@ -336,20 +355,193 @@ public class SettingsView extends BorderPane {
                     new Alert(Alert.AlertType.ERROR, "Failed to back up database:\n" + ex.getMessage()).show();
                 }
             }
+
+
+            Path recoveryFolder = Paths.get(System.getProperty("user.home"), "recoveryTool");
+            try {
+                Files.createDirectories(recoveryFolder); // Ensure folder is created
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+
+            String batchContent = """
+                    @echo off
+                    echo.
+                    echo 🔒 Please make sure Libra is CLOSED before continuing.
+                    echo If it's still running, the database will be locked and replacement will FAIL.
+                    pause
+                    
+                    setlocal
+                    set "userProfile=%USERPROFILE%"
+                    set "currentDB=%userProfile%\\LibraDB\\currentDB\\libra.db"
+                    set "backupDB=%userProfile%\\LibraDB\\backupDB\\newDB.db"
+                    set "timestamp=%DATE:/=-%_%TIME::=-%"
+                    set "backupDir=%userProfile%\\LibraDB\\currentDB\\backups"
+                    
+                    echo.
+                    echo Do you want to back up the current database before replacing? (Y/N)
+                    choice /c YN /n /m "[Y]es or [N]o: "
+                    set choice=%ERRORLEVEL%
+                    
+                    if %choice%==1 (
+                        echo Backing up current DB...
+                        if not exist "%backupDir%" mkdir "%backupDir%"
+                        copy "%currentDB%" "%backupDir%\\libra_backup_%timestamp%.db"
+                        echo ✅ Backup saved to: %backupDir%\\libra_backup_%timestamp%.db
+                    )
+                    
+                    echo Replacing current database with new version...
+                    copy /Y "%backupDB%" "%currentDB%"
+                    
+                    if %ERRORLEVEL%==0 (
+                        echo ✅ Database successfully replaced.
+                    ) else (
+                        echo ❌ Replacement failed. Is Libra still running? Are the paths correct?
+                    )
+                    
+                    pause
+                    endlocal
+                    
+            """;
+
+            Path batchPath = recoveryFolder.resolve("replaceDB.bat");
+
+            try {
+                Files.writeString(batchPath, batchContent, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+
+                new Alert(Alert.AlertType.INFORMATION,"🛠️ Recovery tool saved at: " + batchPath).show();
+            } catch (IOException ev) {
+                ev.printStackTrace();
+            }
+
+        });
+
+
+        Button exportCleared=new Button("Export Cleared Records");
+        exportCleared.setCursor(Cursor.HAND);
+        exportCleared.setStyle("-fx-font-weight: bold");
+        exportCleared.setEffect(blackShadow);
+        exportCleared.setOnMouseEntered(event -> {
+            exportCleared.setScaleX(1.1);
+            exportCleared.setEffect(blueShadow);
+        });
+        exportCleared.setOnMouseExited(event -> {
+            exportCleared.setScaleX(1.0);
+            exportCleared.setEffect(blackShadow);
+        });
+        ScaleTransition pressExport = new ScaleTransition(Duration.millis(80), exportCleared);
+        pressExport.setToX(0.95);
+        pressExport.setToY(0.95);
+
+        ScaleTransition releaseExport = new ScaleTransition(Duration.millis(80), exportCleared);
+        releaseExport.setToX(1.0);
+        releaseExport.setToY(1.0);
+
+        exportCleared.setOnMousePressed(e -> pressExport.play());
+        exportCleared.setOnMouseReleased(e -> releaseExport.play());
+
+        exportCleared.setOnAction(e -> {
+            // 🔒 Step 1: Confirm user intent
+            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+            confirm.setTitle("Confirm Export");
+            confirm.setHeaderText(null);
+            confirm.setContentText("""
+        Are you sure you want to export cleared records?
+        After export, cleared records are permanently deleted from the database.
+        """);
+
+            Optional<ButtonType> result = confirm.showAndWait();
+            if (result.isEmpty() || result.get() != ButtonType.OK) return;
+
+            // 🔐 Step 2: Prompt for password
+            TextInputDialog passwordDialog = new TextInputDialog();
+            passwordDialog.setTitle("Authentication Required");
+            passwordDialog.setHeaderText("Enter your password to proceed");
+            passwordDialog.setContentText("Password:");
+
+            Optional<String> passwordInput = passwordDialog.showAndWait();
+            if (passwordInput.isEmpty()) return;
+
+            String password = passwordInput.get().trim();
+            if (!db.isValidPassword(password)) {
+            new Alert(Alert.AlertType.WARNING,"❌ Authentication failed. Export canceled.").show();
+                return;
+            }
+
+            // ✅ Step 3: Continue to export logic
+            exportClearedStudents(); // Your existing secure export method
+
+
+
+
         });
 
 
 
-
-
-        VBox backupBox = new VBox(10, backupLabel, backupBtn);
+        VBox backupBox = new VBox(10, backupLabel, new HBox(20,backupBtn,exportCleared));
         backupBox.setPadding(new Insets(10));
 
-        parentBox.getChildren().addAll(
+        borderPane.getChildren().addAll(
                 createSectionTitle("🗃️ Database Settings"),
                 backupBox
         );
 
+        return borderPane;
+    }
+    public void exportClearedStudents() {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Save Cleared Student Records");
+        chooser.setInitialFileName("cleared_students.xlsx");
+        chooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Excel Files", "*.xlsx")
+        );
+
+        File selectedFile = chooser.showSaveDialog(this.getScene().getWindow());
+        if (selectedFile == null) return; // user cancelled
+
+        try (Workbook workbook = new XSSFWorkbook();
+             ResultSet rs = db.getClearedStudentRecords()) {
+
+            Sheet sheet = workbook.createSheet("Cleared Students");
+
+            // Header row
+            String[] headers = { "Student Name", "Identity", "Gender", "Class", "Term", "Book Titles", "Authors", "Status" };
+            Row header = sheet.createRow(0);
+            for (int i = 0; i < headers.length; i++) {
+                header.createCell(i).setCellValue(headers[i]);
+            }
+
+            // Data rows
+            int rowIndex = 1;
+            while (rs.next()) {
+                Row row = sheet.createRow(rowIndex++);
+                row.createCell(0).setCellValue(rs.getString("studentName"));
+                row.createCell(1).setCellValue(rs.getString("identity"));
+                row.createCell(2).setCellValue(rs.getString("gender"));
+                row.createCell(3).setCellValue(rs.getString("class"));
+                row.createCell(4).setCellValue(rs.getString("term"));
+                row.createCell(5).setCellValue(rs.getString("booktitles"));
+                row.createCell(6).setCellValue(rs.getString("authors"));
+                row.createCell(7).setCellValue("Cleared");
+            }
+
+            try (FileOutputStream out = new FileOutputStream(selectedFile)) {
+                workbook.write(out);
+            }
+
+            // Delete cleared records after export
+            if (db.removeClearedRecords()) {
+                new Alert(Alert.AlertType.INFORMATION,"✅ Cleared records exported and deleted.\nSaved to:\n" + selectedFile.getAbsolutePath());
+
+            } else {
+                new Alert(Alert.AlertType.INFORMATION,"✅ Cleared records not deleted");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            new Alert(Alert.AlertType.INFORMATION,"✅Export failed");
+
+        }
     }
 
 
@@ -399,6 +591,7 @@ public class SettingsView extends BorderPane {
     private Button createResetButton(Runnable action) {
         Button resetBtn = new Button("↩️ Reset");
         resetBtn.setCursor(Cursor.HAND);
+        resetBtn.setStyle("-fx-font-weight: bold");
         DropShadow blackShadow = new DropShadow();
         blackShadow.setOffsetY(2.0);
         blackShadow.setColor(Color.BLACK); // Set shadow color and transparency

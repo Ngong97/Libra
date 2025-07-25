@@ -2,7 +2,10 @@ package com.ngong.librasoftware.view;
 
 import com.ngong.librasoftware.Controller.DashboardApp;
 import com.ngong.librasoftware.DAO.DatabaseService;
+import com.ngong.librasoftware.utils.UIUtils;
+import javafx.animation.KeyFrame;
 import javafx.animation.ScaleTransition;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -11,7 +14,6 @@ import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.effect.DropShadow;
-import javafx.scene.image.Image;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -23,18 +25,14 @@ import javafx.util.Duration;
 public class LoginWindow extends Application {
     private final DatabaseService db = new DatabaseService();
 
-    private boolean isPasswordVisible=false;
-
     private int failedAttempts = 0;
 
+    private final Label cooldownLabel = new Label();
+    private Timeline cooldownTimeline;
 
     @Override
     public void start(Stage primaryStage) {
-
-        Image icon = new Image(getClass().getResource("/images/books.png").toString()); // Create a BackgroundImage with the loaded image
-
-        primaryStage.getIcons().add(icon);
-
+        UIUtils.applyAppIcon(primaryStage);
         Label titleLabel = new Label("Sign in to access Dashboard");
         titleLabel.setFont(new Font("Arial", 24));
         titleLabel.setTextFill(Color.web("#333333"));
@@ -44,10 +42,12 @@ public class LoginWindow extends Application {
         usernameField.setPromptText("Username");
         usernameField.setMaxWidth(280);
         usernameField.setStyle("-fx-font-size: 15");
+        usernameField.getStyleClass().add("recovery-input");
         PasswordField passwordField = new PasswordField();
         passwordField.setStyle("-fx-font-size: 15");
         passwordField.setMaxWidth(280);
         passwordField.setPromptText("Password");
+        passwordField.getStyleClass().add("recovery-input");
 
         Hyperlink forgotPasswordLink = new Hyperlink("Forgot password?");
         forgotPasswordLink.setVisible(false); // initially hidden
@@ -99,6 +99,15 @@ public class LoginWindow extends Application {
         passtextfield.setVisible(false);
 
 
+
+        VBox formLayout = new VBox(20, titleLabel, usernameField,passwordField, forgotPasswordLink, loginButton);
+        formLayout.setAlignment(Pos.CENTER);
+        formLayout.setPadding(new Insets(20));
+        formLayout.setStyle("-fx-background-color: #f5f5f5; -fx-border-color: #dddddd; -fx-border-width: 1px;");
+        formLayout.setPrefWidth(350);
+
+
+
         loginButton.setOnAction(e -> {
             String enteredUsername = usernameField.getText();
             String enteredPassword = passwordField.getText();
@@ -109,39 +118,62 @@ public class LoginWindow extends Application {
                 showLoadingPopUp(primaryStage);
                 failedAttempts = 0;
             } else {
-                failedAttempts++;
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle("Information");
-                alert.setHeaderText(null);
-                alert.setContentText("Incorrect credentials. Attempt " + failedAttempts + " of 5.");
-                alert.showAndWait();
-                if (failedAttempts >= 5) {
+                if (failedAttempts < 5) {
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Information");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Incorrect credentials. Attempt " + failedAttempts + " of 5.");
+                    alert.showAndWait();
+                    failedAttempts+=1;
+                    if (failedAttempts >= 2) {
+                        forgotPasswordLink.setVisible(true);
+                        forgotPasswordLink.setStyle("-fx-text-fill: #D32F2F; -fx-font-weight: bold;");
+                    }
+                } else {
+                    loginButton.setDisable(true);
                     forgotPasswordLink.setVisible(true);
-                    // Optional: add visual cue
                     forgotPasswordLink.setStyle("-fx-text-fill: #D32F2F; -fx-font-weight: bold;");
+
+                    cooldownLabel.setText("Please wait 15 seconds...");
+                    cooldownLabel.setStyle("-fx-text-fill: #1976D2; -fx-font-weight: bold;");
+
+                    // Add cooldownLabel to formLayout
+                    formLayout.getChildren().add(cooldownLabel);
+
+                    cooldownTimeline = new Timeline();
+                    for (int i = 1; i <= 15; i++) {
+                        final int secondsLeft = 15 - i;
+                        cooldownTimeline.getKeyFrames().add(
+                                new KeyFrame(Duration.seconds(i), ev ->
+                                        cooldownLabel.setText("Please wait " + secondsLeft + " seconds...")
+                                )
+                        );
+                    }
+
+                    cooldownTimeline.setOnFinished(ev -> {
+                        formLayout.getChildren().remove(cooldownLabel);
+                        loginButton.setDisable(false);
+                        failedAttempts = 0;
+                    });
+
+                    cooldownTimeline.play();
                 }
+
             }
         });
 
 
 
-        VBox formLayout = new VBox(20, titleLabel, usernameField,passwordField, forgotPasswordLink, loginButton);
-        formLayout.setAlignment(Pos.CENTER);
-        formLayout.setPadding(new Insets(20));
-        formLayout.setStyle("-fx-background-color: #f5f5f5; -fx-border-color: #dddddd; -fx-border-width: 1px;");
-        formLayout.setPrefWidth(350);
+
 
         // Main scene
         Scene scene = new Scene(formLayout, 550, 580);
+        scene.getStylesheets().add(getClass().getResource("/recovery.css").toExternalForm());
+
         primaryStage.setScene(scene);
         primaryStage.setTitle("Login Form");
         primaryStage.show();
     }
-
-    private void showResetCredentials() {
-        new PasswordRecoveryForm().launch();
-    }
-
 
     private void showLoadingPopUp(Stage primarystage) {
         Stage popup = new Stage();

@@ -85,8 +85,8 @@ public class ReportView extends VBox {
         blackShadow.setColor(javafx.scene.paint.Color.BLACK);
 
         DropShadow blueShadow = new DropShadow();
-        blackShadow.setOffsetY(2.0);
-        blackShadow.setColor(Color.BLUE); // Set shadow color and transparency
+        blueShadow.setOffsetY(2.0);
+        blueShadow.setColor(Color.BLUE); // Set shadow color and transparency
 
         previewBtn.setEffect(blackShadow);
         previewBtn.setOnMouseEntered(event -> {

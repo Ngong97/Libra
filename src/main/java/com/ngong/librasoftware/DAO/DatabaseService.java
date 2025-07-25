@@ -29,17 +29,17 @@ public class DatabaseService {
 
     public DatabaseService() {
         String userHome = System.getProperty("user.home");
-        String dbFolder = userHome + "/libraDB";
-        String defaultPath = dbFolder + "/libra.db";
+        String dbPath = userHome + "/libraDB/currentDB/libra.db";
 
-        new File(dbFolder).mkdirs(); // Ensure folder exists
-        this.DB_URL = "jdbc:sqlite:" + defaultPath;
+        this.DB_URL = "jdbc:sqlite:" + dbPath;
 
         try (Connection conn = DriverManager.getConnection(DB_URL)) {
-
+            // Connection initialized; you may add validation here if needed
         } catch (SQLException e) {
-            e.printStackTrace(); }
+            e.printStackTrace();
+        }
     }
+
 
     public void connect() {
         try {
@@ -246,30 +246,6 @@ public int countOverdueBooks(String name, String grade, String gender, String te
     }
 
 
-//    public String getMostActiveGender() {
-//        String sql = """
-//        SELECT s.gender, COUNT(*) AS count
-//        FROM borrowings b
-//        JOIN students s ON s.student_id = b.student_id
-//        WHERE b.returned = 0
-//        GROUP BY s.gender
-//        ORDER BY count DESC
-//        LIMIT 1
-//    """;
-//
-//        try (Connection conn = DriverManager.getConnection(DB_URL);
-//             PreparedStatement stmt = conn.prepareStatement(sql);
-//             ResultSet rs = stmt.executeQuery()) {
-//            if (rs.next()) {
-//                return rs.getString("gender") + " (Active)";
-//            }
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        }
-//        return "N/A";
-//    }
-
-
 
     public String getMostActiveGender() {
         String sql = """
@@ -347,15 +323,6 @@ public int countOverdueBooks(String name, String grade, String gender, String te
         }
     }
 
-//    public int countCurrentlyBorrowedBooks() {
-//        try (PreparedStatement stmt = DriverManager.getConnection(DB_URL).prepareStatement("SELECT COUNT(*) FROM borrowings WHERE returned = 0");
-//             ResultSet rs = stmt.executeQuery()) {
-//            return rs.next() ? rs.getInt(1) : 0;
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//            return 0;
-//        }
-//    }
 
     public List<String> getTopBorrowedBooks() {
         String sql = """
@@ -402,9 +369,7 @@ public int countOverdueBooks(String name, String grade, String gender, String te
     }
 
 
-//    public List<String> getRecentActivities() {
-//        return queryList("SELECT description FROM activity_log ORDER BY timestamp DESC LIMIT 5");
-//    }
+
 
     public Map<String, List<String>> getRecentActivities() {
         String sql = """
@@ -467,8 +432,8 @@ SELECT
               AND b2.returned = 0
               AND julianday('now') - julianday(b2.borrow_date) > b2.duration
         )
-        THEN '🔴 Overdue'
-        ELSE '🟢 On Time'
+        THEN 'Delayed'
+        ELSE 'On Time'
     END AS status
 FROM students s
 JOIN borrowings br ON br.student_id = s.student_id
@@ -477,9 +442,6 @@ WHERE br.returned = 0
 GROUP BY s.student_id
 ORDER BY s.name
 """;
-
-
-
 
         try (Connection conn = DriverManager.getConnection(DB_URL);
              Statement stmt = conn.createStatement();
@@ -546,57 +508,6 @@ ORDER BY s.name
         }
         return books;
     }
-
-
-//    public List<Book> getAllLibraryBooksWithAvailability() {
-//        String sql = """
-//        SELECT lb.book_id, lb.title AS lb_title, lb.author AS lb_author, lb.total_quantity,
-//               b.title AS b_title, b.author AS b_author,
-//               bd.quantity, bd.returned
-//        FROM library_books lb
-//        LEFT JOIN books b ON LOWER(lb.title) = LOWER(b.title)
-//        LEFT JOIN borrowings bd ON b.book_id = bd.book_id
-//    """;
-//
-//        Map<Integer, AggregatedBook> aggregates = new LinkedHashMap<>();
-//
-//        try (Connection conn = DriverManager.getConnection(DB_URL);
-//             PreparedStatement stmt = conn.prepareStatement(sql);
-//             ResultSet rs = stmt.executeQuery()) {
-//
-//            while (rs.next()) {
-//                int bookId = rs.getInt("book_id");
-//                String lbTitle = rs.getString("lb_title");
-//                String lbAuthor = rs.getString("lb_author");
-//                int totalQuantity = rs.getInt("total_quantity");
-//
-//                String bTitle = rs.getString("b_title");
-//                String bAuthor = rs.getString("b_author");
-//                int quantity = rs.getInt("quantity");
-//                boolean active = rs.getInt("returned") == 0;
-//
-//                AggregatedBook agg = aggregates.computeIfAbsent(bookId,
-//                        id -> new AggregatedBook(id, lbTitle, lbAuthor, totalQuantity));
-//
-//                if (bTitle != null && titlesMatch(lbTitle, bTitle) &&
-//                        bAuthor != null && authorsSimilar(lbAuthor, bAuthor) &&
-//                        active) {
-//                    agg.borrowed += quantity;
-//                }
-//            }
-//
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        }
-//
-//        List<Book> books = new ArrayList<>();
-//        int sn = 1;
-//        for (AggregatedBook agg : aggregates.values()) {
-//            books.add(new Book(sn++, agg.bookId, agg.title, agg.author, agg.totalQuantity, agg.borrowed, agg.totalQuantity - agg.borrowed));
-//        }
-//
-//        return books;
-//    }
 
     private boolean titlesMatch(String t1, String t2) {
         return t1.trim().equalsIgnoreCase(t2.trim());
@@ -729,7 +640,7 @@ ORDER BY s.name
 
 
     public String getLastUsedTerm() {
-        String sql = "SELECT term FROM borrowings ORDER BY borrow_date";
+        String sql = "SELECT term FROM borrowings ORDER BY borrow_date DESC LIMIT 1";
         try (Connection conn = DriverManager.getConnection(DB_URL);
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
@@ -739,6 +650,7 @@ ORDER BY s.name
             return null;
         }
     }
+
 
 
     public List<CheckInEntry> getBorrowedBooksForCheckIn(int studentId) {
@@ -2189,14 +2101,13 @@ public void clearReturnStatusForBooks(int borrowerId, Map<Integer, Integer> quan
 
 
     // Method to save user data to the database
-    public void saveUserToDatabase(String username, String password, String email, String school) {
+    public void saveUserToDatabase(String username, String password, String school) {
         try (Connection conn = DriverManager.getConnection(DB_URL)) {
-            String sql = "INSERT INTO users (librarian, password,email,school) VALUES (?, ?,?,?)";
+            String sql = "INSERT INTO users (librarian, password,school) VALUES (?,?,?)";
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, username);
                 pstmt.setString(2, password);
-                pstmt.setString(3, email);
-                pstmt.setString(4, school);
+                pstmt.setString(3, school);
                 pstmt.executeUpdate();
             }
         } catch (SQLException e) {
@@ -2254,31 +2165,6 @@ public void clearReturnStatusForBooks(int borrowerId, Map<Integer, Integer> quan
 
         return samples;
     }
-//    public void restoreReturnStatusForBooks(String studentId, List<Integer> bookIds) {
-//        String restoreQuery = "UPDATE borrowings SET returned = 0 WHERE student_id = ? AND book_id = ?";
-//        try (Connection connection = DriverManager.getConnection(DB_URL);
-//             PreparedStatement statement = connection.prepareStatement(restoreQuery)) {
-//            connection.setAutoCommit(false);
-//
-//            for (int bookId : bookIds) {
-//                statement.setString(1, studentId);
-//                statement.setInt(2, bookId);
-//                statement.addBatch();
-//            }
-//
-//            statement.executeBatch();
-//            connection.commit();
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//            showAlert("Error", "Failed to undo clearance.");
-//
-//            try (Connection connection = DriverManager.getConnection(DB_URL)) {
-//                connection.rollback(); // Rollback in case of error
-//            } catch (SQLException rollbackEx) {
-//                rollbackEx.printStackTrace();
-//            }
-//        }
-//    }
 
 
     public void restoreReturnStatusForBooks(int studentId, Map<Integer, Integer> quantityMap) {
@@ -2346,39 +2232,6 @@ public void clearReturnStatusForBooks(int borrowerId, Map<Integer, Integer> quan
     }
 
 
-//    String sql = """
-//                    SELECT COUNT(DISTINCT s.student_id)
-//                    FROM students s
-//                    JOIN borrowings b ON b.student_id = s.student_id
-//                    WHERE b.returned = 0
-//                """;
-
-
-//    public List<BookEntry> getUniqueBorrowedBooks() {
-//        List<BookEntry> entries = new ArrayList<>();
-//        String query = """
-//        SELECT title, author
-//        FROM books
-//        GROUP BY title, author
-//    """;
-//        try (Connection conn = DriverManager.getConnection(DB_URL);
-//             PreparedStatement stmt = conn.prepareStatement(query);
-//             ResultSet rs = stmt.executeQuery()) {
-//
-//            while (rs.next()) {
-//                String title = rs.getString("title");
-//                String author = rs.getString("author");
-////                int qty = rs.getInt("total_quantity");
-//
-//                entries.add(new BookEntry(title, author, 100));
-//            }
-//
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        }
-//
-//        return entries;
-//    }
 
 public List<BookEntry> getUniqueBorrowedBooks() {
     List<BookEntry> entries = new ArrayList<>();
@@ -2434,11 +2287,6 @@ public List<BookEntry> getUniqueBorrowedBooks() {
         }
     }
 
-//    public String generateFallbackIsbn(String title, String author) {
-//        String base = title.trim().toLowerCase() + "|" + author.trim().toLowerCase();
-//        int hash = Math.abs(base.hashCode()); // Ensures positive number
-//        return "LIBRA-" + hash;
-//    }
 public String generateFallbackIsbn(String title, String author) {
     String base = title.trim().toLowerCase() + "|" + author.trim().toLowerCase();
     int salt = 0;
@@ -2483,14 +2331,23 @@ public String generateFallbackIsbn(String title, String author) {
         }
     }
 
-    public boolean doesStudentIdExist(String studentId) {
-        String sql = "SELECT 1 FROM students WHERE identity = ?";
+
+
+    public boolean doesStudentIdExistAndHasUncleared(String studentId) {
+        String sql = """
+        SELECT s.student_id
+        FROM students s
+        JOIN borrowings b ON s.student_id = b.student_id
+        WHERE s.identity = ? AND b.returned = 0
+        LIMIT 1
+        """;
+
         try (Connection conn = DriverManager.getConnection(DB_URL);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, studentId);
             ResultSet rs = stmt.executeQuery();
-            return rs.next(); // true if found
+            return rs.next(); // true if the student exists and has uncleared borrowings
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -2498,20 +2355,27 @@ public String generateFallbackIsbn(String title, String author) {
         }
     }
 
-//    public String getGenderFromMemory(String name) {
-//        String query = "SELECT gender FROM gender_memory WHERE name = ?";
-//        try (Connection conn = DriverManager.getConnection(DB_URL);
-//             PreparedStatement stmt = conn.prepareStatement(query)) {
-//            stmt.setString(1, name);
-//            ResultSet rs = stmt.executeQuery();
-//            if (rs.next()) {
-//                return rs.getString("gender");
-//            }
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        }
-//        return null;
-//    }
+    public boolean doesStudentNameExistAndHasUncleared(String name) {
+        String sql = """
+        SELECT s.student_id
+        FROM students s
+        JOIN borrowings b ON s.student_id = b.student_id
+        WHERE s.name = ? AND b.returned = 0
+        LIMIT 1
+        """;
+
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, name);
+            ResultSet rs = stmt.executeQuery();
+            return rs.next(); // true if the student exists and has uncleared borrowings
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 
 
     public String getGenderFromMemory(String name) {
@@ -2884,6 +2748,113 @@ public String generateFallbackIsbn(String title, String author) {
         return "A general educational book useful for academic reference.";
     }
 
+    public ResultSet getClearedStudentRecords() throws SQLException {
+        String query = """
+        SELECT
+            s.name AS studentName,
+            s.identity,
+            s.gender,
+            s.student_class AS class,
+            br.term,
+            GROUP_CONCAT(bk.title, ', ') AS booktitles,
+            GROUP_CONCAT(bk.author, ', ') AS authors
+        FROM students s
+        JOIN borrowings br ON br.student_id = s.student_id
+        JOIN books bk ON br.book_id = bk.book_id
+        WHERE br.returned = 1
+        GROUP BY s.student_id, br.term
+        """;
+        Connection conn=DriverManager.getConnection(DB_URL);
+        PreparedStatement stmt = conn.prepareStatement(query); // connection is your DB handle
+        return stmt.executeQuery();
+    }
+
+
+    public boolean removeClearedRecords() {
+        String deleteBorrowings = "DELETE FROM borrowings WHERE returned = 1";
+
+        String deleteStudents = """
+        DELETE FROM students
+        WHERE student_id NOT IN (
+            SELECT student_id FROM borrowings
+        )
+        """;
+
+        String deleteBooks = """
+        DELETE FROM books
+        WHERE book_id NOT IN (
+            SELECT book_id FROM borrowings
+        )
+        """;
+
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             Statement stmt = conn.createStatement()) {
+
+            // Step 1: Remove cleared borrowings
+            stmt.executeUpdate(deleteBorrowings);
+
+            // Step 2: Remove students with no remaining borrowings
+            stmt.executeUpdate(deleteStudents);
+
+            // Step 3: Remove books no longer associated with any borrowing
+            stmt.executeUpdate(deleteBooks);
+
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
+    public boolean isValidPassword(String input) {
+        String query = "SELECT 1 FROM users WHERE password = ?";
+        try (PreparedStatement stmt = DriverManager.getConnection(DB_URL).prepareStatement(query)) {
+            stmt.setString(1, input); // You can hash this if passwords are encrypted
+            ResultSet rs = stmt.executeQuery();
+            return rs.next(); // True if there's a match
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public int getRegisteredBooksNo() {
+        String sql = "SELECT SUM(total_quantity) FROM library_books";
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            return rs.next() ? rs.getInt(1) : 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
+    public int getRemainingBooksNo() {
+        return getRegisteredBooksNo() - countOverdueBooks("","","","",null,"","");
+    }
+
+
+    public int countOverdueBooks() {
+        int count = 0;
+        String query = "SELECT SUM(bd.quantity) FROM borrowings bd " +
+                "JOIN students s ON bd.student_id = s.student_id " +
+                "JOIN books b ON bd.book_id = b.book_id " +
+                "WHERE bd.returned = 0 AND bd.return_date < CURRENT_DATE";
+
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             PreparedStatement pstmt = conn.prepareStatement(query);
+             ResultSet rs = pstmt.executeQuery()) {
+
+            if (rs.next()) {
+                count = rs.getInt(1); // Total quantity of overdue books
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return count;
+    }
 
 
 }

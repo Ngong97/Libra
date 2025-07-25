@@ -1,6 +1,7 @@
 package com.ngong.librasoftware.view;
 
 import com.ngong.librasoftware.Controller.DashboardApp;
+import com.ngong.librasoftware.utils.UIUtils;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -32,6 +33,7 @@ public class StartupPreviewWindow extends Application {
 
     @Override
     public void start(Stage stage) {
+        UIUtils.applyAppIcon(stage);
         String schoolName = fetchSchoolName();
 
         Label schoolLabel = new Label(schoolName);

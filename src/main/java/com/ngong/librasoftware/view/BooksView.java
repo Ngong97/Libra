@@ -4,6 +4,7 @@ import com.ngong.librasoftware.DAO.DatabaseService;
 import com.ngong.librasoftware.model.Book;
 import com.ngong.librasoftware.model.BookEntry;
 import com.ngong.librasoftware.utils.AnimationUtils;
+import com.ngong.librasoftware.utils.UIUtils;
 import com.ngong.librasoftware.utils.WarningMessage;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
@@ -12,31 +13,27 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
-import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.image.WritableImage;
 import javafx.scene.input.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.stage.*;
+import javafx.stage.FileChooser;
+import javafx.stage.Popup;
+import javafx.stage.Screen;
 import javafx.util.Duration;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -186,9 +183,9 @@ public class BooksView extends VBox {
 
 
 
-        ImageView addIcon = new ImageView(new Image(getClass().getResource("/images/book-out.png").toExternalForm()));
-        addIcon.setFitWidth(30);
-        addIcon.setFitHeight(30);
+//        ImageView addIcon = new ImageView(new Image(getClass().getResource("/images/book-out.png").toExternalForm()));
+        ImageView addIcon = UIUtils.loadExternalImageView("/images/book-out.png",30,30);
+
 
         Button addBooksBtn = new Button();
         addBooksBtn.getStyleClass().add("unique-button");
@@ -217,9 +214,9 @@ public class BooksView extends VBox {
 
 
 
-        ImageView delIcon = new ImageView(new Image(getClass().getResource("/images/deleteIcon.png").toExternalForm()));
-        delIcon.setFitWidth(30);
-        delIcon.setFitHeight(30);
+//        ImageView delIcon = new ImageView(new Image(getClass().getResource("/images/deleteIcon.png").toExternalForm()));
+        ImageView delIcon = UIUtils.loadExternalImageView("/images/deleteIcon.png",30,30);
+
 
 
         Hyperlink syncWithBorrowed = new Hyperlink("Sync With Borrowed");
@@ -247,9 +244,9 @@ public class BooksView extends VBox {
         });
 
 
-        ImageView editIcon = new ImageView(new Image(getClass().getResource("/images/editIcon.png").toExternalForm()));
-        editIcon.setFitWidth(30);
-        editIcon.setFitHeight(30);
+//        ImageView editIcon = new ImageView(new Image(getClass().getResource("/images/editIcon.png").toExternalForm()));
+        ImageView editIcon = UIUtils.loadExternalImageView("/images/editIcon.png",30,30);
+
 
 
 
@@ -297,9 +294,9 @@ public class BooksView extends VBox {
 
 
         Button copyTable = new Button();
-        ImageView copy = new ImageView(new Image(getClass().getResource("/images/copyIcon.png").toExternalForm()));
-        copy.setFitWidth(30);
-        copy.setFitHeight(30);
+//        ImageView copy = new ImageView(new Image(getClass().getResource("/images/copyIcon.png").toExternalForm()));
+        ImageView copy = UIUtils.loadExternalImageView("/images/copyIcon.png",30,30);
+
         copyTable.setGraphic(copy);
         copyTable.setCursor(Cursor.HAND);
 
@@ -333,9 +330,9 @@ public class BooksView extends VBox {
 
         HBox summaryBox = createInventorySummaryBox();
 
-        ImageView searchIcon = new ImageView(new Image(getClass().getResource("/images/search.png").toExternalForm()));
-        searchIcon.setFitHeight(16);
-        searchIcon.setFitWidth(16);
+//        ImageView searchIcon = new ImageView(new Image(getClass().getResource("/images/search.png").toExternalForm()));
+        ImageView searchIcon = UIUtils.loadExternalImageView("/images/search.png",30,30);
+
 
         // Wrap them in a styled container
         StackPane searchContainer = new StackPane(search);
@@ -369,41 +366,6 @@ public class BooksView extends VBox {
         AnimationUtils.applyFadeIn(this, 600);
     }
 
-    private void openPDFFile(File pdfFile) {
-        try (PDDocument document = PDDocument.load(pdfFile)) {
-            PDFRenderer renderer = new PDFRenderer(document);
-            BufferedImage image = renderer.renderImageWithDPI(0, 150); // First page, 150 DPI
-            WritableImage fxImage = SwingFXUtils.toFXImage(image, null);
-
-            ImageView imageView = new ImageView(fxImage);
-            imageView.setPreserveRatio(true);
-            imageView.setFitWidth(800);
-
-            ScrollPane scrollPane = new ScrollPane(imageView);
-            scrollPane.setFitToWidth(true);
-
-            Scene scene = new Scene(scrollPane, 900, 700);
-            Stage pdfStage = new Stage();
-            pdfStage.setScene(scene);
-            pdfStage.setTitle("📘 PDF Viewer");
-            pdfStage.initModality(Modality.APPLICATION_MODAL);
-            pdfStage.show();
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert("Error", "Failed to open PDF file.");
-        }
-    }
-
-
-
-    private void showAlert(String error, String s) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Error");
-        alert.setHeaderText(error);
-        alert.setContentText(s);
-        alert.showAndWait();
-    }
-
     private void setupBookHoverPopup() {
         bookHoverContent.setPadding(new Insets(10));
         bookHoverContent.setStyle("""
@@ -433,9 +395,9 @@ public class BooksView extends VBox {
 
         Image coverImage;
         try {
-            coverImage = new Image(getClass().getResource(imagePath).toExternalForm());
+            coverImage = UIUtils.loadExternalImage(imagePath);
         } catch (Exception e) {
-            coverImage = new Image(getClass().getResource("/images/covers/default_cover.png").toExternalForm());
+            coverImage = UIUtils.loadExternalImage("/images/default_cover.png");
         }
 
         ImageView cover = new ImageView(coverImage);
@@ -532,7 +494,7 @@ public class BooksView extends VBox {
         Dialog<Void> dialog = new Dialog<>();
         dialog.setTitle("Add Selected Books to Inventory");
         dialog.getDialogPane().setPrefWidth(700);
-
+//        UIUtils.applyAppIcon(dialog);
 
 
         DropShadow blackShadow = new DropShadow();
@@ -602,11 +564,10 @@ public class BooksView extends VBox {
 
 
         Button pasteClipboard = new Button();
-        Image pasteIcon = new Image(getClass().getResource("/images/pasteClipboard.png").toString()); // Create a BackgroundImage with the loaded image
-        ImageView pasteIconView = new ImageView(pasteIcon);
-        pasteIconView.setFitWidth(20);
-        pasteIconView.setFitHeight(20);
-        pasteClipboard.setGraphic(pasteIconView);
+//        Image pasteIcon = new Image(getClass().getResource("/images/pasteClipboard.png").toString()); // Create a BackgroundImage with the loaded image
+        ImageView pasteIcon = UIUtils.loadExternalImageView("/images/pasteClipboard.png",20,20);
+
+        pasteClipboard.setGraphic(pasteIcon);
         Tooltip pastetooltip = new Tooltip("Paste (Ctrl+V)");
 //        pastetooltip.getStyleClass().add("nav-tooltip");
         pastetooltip.setShowDelay(Duration.millis(100));
@@ -617,11 +578,10 @@ public class BooksView extends VBox {
         pasteClipboard.setEffect(blackShadow);
 
         Button clearAll = new Button();
-        Image refreshIcon = new Image(getClass().getResource("/images/clear2.png").toString()); // Create a BackgroundImage with the loaded image
-        ImageView refreshIconView = new ImageView(refreshIcon);
-        refreshIconView.setFitWidth(20);
-        refreshIconView.setFitHeight(20);
-        clearAll.setGraphic(refreshIconView);
+//        Image refreshIcon = new Image(getClass().getResource("/images/clear.png").toString()); // Create a BackgroundImage with the loaded image
+        ImageView refreshIcon = UIUtils.loadExternalImageView("/images/clear.png",20,20);
+
+        clearAll.setGraphic(refreshIcon);
         Tooltip refreshtooltip = new Tooltip("Clear Text Editor");
 //        refreshtooltip.getStyleClass().add("nav-tooltip");
         refreshtooltip.setShowDelay(Duration.millis(100));
@@ -809,44 +769,6 @@ public class BooksView extends VBox {
 
 
 
-    private void showEditDialog(Book book) {
-        Dialog<Void> dialog = new Dialog<>();
-        dialog.setTitle("Edit Book");
-        dialog.getDialogPane().setPrefWidth(420);
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-
-        TextField titleField = new TextField(book.getTitle());
-        TextField authorField = new TextField(book.getAuthor());
-        Spinner<Integer> totalField = new Spinner<>(1, 10000, book.getTotalQuantity());
-
-        GridPane form = new GridPane();
-        form.setHgap(10);
-        form.setVgap(10);
-        form.setPadding(new Insets(10));
-        form.addRow(0, new Label("Title:"), titleField);
-        form.addRow(1, new Label("Author:"), authorField);
-        form.addRow(2, new Label("Total Quantity:"), totalField);
-
-        dialog.getDialogPane().setContent(form);
-
-        dialog.setResultConverter(btn -> {
-            if (btn == ButtonType.OK) {
-                String newTitle = titleField.getText().trim();
-                String newAuthor = authorField.getText().trim();
-                int newTotal = totalField.getValue();
-
-                if (!newTitle.isEmpty() && !newAuthor.isEmpty()) {
-                    db.updateLibraryBook(book.getId(), newTitle, newAuthor, newTotal);
-                    books.setAll(db.getAllLibraryBooksWithAvailability());
-                }
-            }
-            return null;
-        });
-
-        dialog.showAndWait();
-    }
-
-
 
     private void showBulkAddDialog() {
         Dialog<Void> dialog = new Dialog<>();
@@ -935,9 +857,9 @@ public class BooksView extends VBox {
 
 
         // Load Samples Online button
-        ImageView netIcon = new ImageView(new Image(getClass().getResource("/images/network.png").toExternalForm()));
-        netIcon.setFitWidth(30);
-        netIcon.setFitHeight(30);
+//        ImageView netIcon = new ImageView(new Image(getClass().getResource("/images/network.png").toExternalForm()));
+        ImageView netIcon = UIUtils.loadExternalImageView("/images/network.png",30,30);
+
 
         Button loadSamplesBtn = new Button();
         loadSamplesBtn.setGraphic(netIcon);
@@ -961,9 +883,9 @@ public class BooksView extends VBox {
         });
 
 
-        ImageView fileIcon = new ImageView(new Image(getClass().getResource("/images/fileIcon.png").toExternalForm()));
-        fileIcon.setFitWidth(30);
-        fileIcon.setFitHeight(30);
+//        ImageView fileIcon = new ImageView(new Image(getClass().getResource("/images/fileIcon.png").toExternalForm()));
+        ImageView fileIcon = UIUtils.loadExternalImageView("/images/fileIcon.png",30,30);
+
 
 
         Button importBtn = new Button();

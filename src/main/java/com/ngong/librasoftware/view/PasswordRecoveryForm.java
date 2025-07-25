@@ -1,6 +1,7 @@
 package com.ngong.librasoftware.view;
 
 import com.ngong.librasoftware.DAO.DatabaseService;
+import com.ngong.librasoftware.utils.UIUtils;
 import javafx.animation.KeyFrame;
 import javafx.animation.ScaleTransition;
 import javafx.animation.Timeline;
@@ -23,7 +24,8 @@ public class PasswordRecoveryForm extends Stage {
     public PasswordRecoveryForm() {
         this.setTitle("🔑 Password Recovery");
         this.initModality(Modality.APPLICATION_MODAL);
-
+        this.setResizable(false);
+        UIUtils.applyAppIcon(this);
         VBox layout = new VBox(20);
         layout.setPadding(new Insets(30));
         layout.setAlignment(Pos.CENTER);
