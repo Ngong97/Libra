@@ -12,10 +12,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.io.File;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
+import java.sql.*;
 
 public class StartupPreviewWindow extends Application {
     private String fetchSchoolName() {
@@ -46,7 +43,11 @@ public class StartupPreviewWindow extends Application {
         enterBtn.getStyleClass().add("enter-button");
         enterBtn.setOnAction(e -> {
             stage.close();
-            new DashboardApp().start(new Stage());
+            try {
+                new DashboardApp().start(new Stage());
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
         });
 
         Label footer = new Label("Libra Software © 2025");

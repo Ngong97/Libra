@@ -736,7 +736,15 @@ public class CheckOutView extends HBox {
         TextField duration = new TextField();
         duration.setPromptText("Duration in days");
         duration.getStyleClass().add("settings-textfield");
-
+        duration.textProperty().addListener((obs, oldValue, newValue) -> {
+            String filtered = newValue.replaceAll("[^\\d]", "");   // Remove non-digits
+            if (filtered.length() > 2) {
+                filtered = filtered.substring(0, 2);               // Truncate to 2 digits
+            }
+            if (!filtered.equals(newValue)) {
+                duration.setText(filtered);                      // Apply correction
+            }
+        });
         duration.setOnScroll(event -> {
             try {
                 int currentValue = Integer.parseInt(duration.getText());

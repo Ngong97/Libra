@@ -2,11 +2,14 @@ package com.ngong.librasoftware.Controller;
 
 import com.ngong.librasoftware.DAO.DatabaseService;
 import com.ngong.librasoftware.model.PendingBook;
+import com.ngong.librasoftware.service.SubscriptionService;
 import com.ngong.librasoftware.utils.TransientMessage;
+import com.ngong.librasoftware.utils.TrialManager;
 import com.ngong.librasoftware.utils.UIUtils;
 import com.ngong.librasoftware.utils.WarningMessage;
 import com.ngong.librasoftware.view.*;
 import javafx.animation.FadeTransition;
+import javafx.animation.PauseTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -20,26 +23,38 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.stage.Popup;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import javafx.util.Duration;
 
+import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
 public class DashboardApp extends Application {
     private final DatabaseService db = new DatabaseService();
+    final String computer_username=System.getProperty("user.name");
+    final String DB_URL = "jdbc:sqlite:C:\\Users\\"+computer_username+"\\libraDB\\libraDB.db";
 
     private VBox navMenu;
     private VBox sidebar;
     public StackPane contentArea;
 
     @Override
-    public void start(Stage primaryStage) {
+    public void start(Stage primaryStage) throws SQLException {
         UIUtils.applyAppIcon(primaryStage);
         contentArea = new StackPane();
         BorderPane root = new BorderPane();
         root.setCenter(contentArea);
         contentArea.getChildren().setAll(new DashboardView(contentArea));
+
+
+
+        if (!db.hasFirstLaunchDate()) {
+            db.setFirstLaunchDate(LocalDate.now()); // Record initial use
+        }
 
         //logging ...........
 
@@ -63,6 +78,10 @@ public class DashboardApp extends Application {
 
         // Assign actions
         reportBtn.setOnAction(e -> {
+            if (isTrialExpired()) {
+                promptForActivationKey();
+                return;
+            }
             contentArea.getChildren().setAll(new ReportView());
             setSelectedNav(reportBtn, navButtons);
         });
@@ -73,28 +92,48 @@ public class DashboardApp extends Application {
         });
 
         booksBtn.setOnAction(e -> {
+            if (isTrialExpired()) {
+                promptForActivationKey();
+                return;
+            }
             contentArea.getChildren().setAll(new BooksView(contentArea));
             setSelectedNav(booksBtn, navButtons);
         });
 
         studentsBtn.setOnAction(e -> {
+            if (isTrialExpired()) {
+                promptForActivationKey();
+                return;
+            }
             contentArea.getChildren().setAll(new StudentsView(contentArea));
             setSelectedNav(studentsBtn, navButtons);
         });
 
 
         checkoutBtn.setOnAction(e -> {
+            if (isTrialExpired()) {
+                promptForActivationKey();
+                return;
+            }
             contentArea.getChildren().setAll(new CheckOutView(contentArea));
             setSelectedNav(checkoutBtn, navButtons);
         });
 
 
         statsBtn.setOnAction(e -> {
+            if (isTrialExpired()) {
+                promptForActivationKey();
+                return;
+            }
             contentArea.getChildren().setAll(new StatisticsView());
             setSelectedNav(statsBtn, navButtons);
         });
 
         settingsBtn.setOnAction(e -> {
+            if (isTrialExpired()) {
+                promptForActivationKey();
+                return;
+            }
             // Step 1: Prompt for password
             TextInputDialog passwordDialog = new TextInputDialog();
             passwordDialog.setTitle("Authentication Required");
@@ -119,12 +158,6 @@ public class DashboardApp extends Application {
                 contentArea.getChildren().add(msg);
             }
         });
-
-//        settingsBtn.setOnAction(e -> {
-//            contentArea.getChildren().setAll(new SettingsView());
-//            setSelectedNav(settingsBtn, navButtons);
-//        });
-
         aboutBtn.setOnAction(e -> {
             contentArea.getChildren().setAll(new AboutView());
             setSelectedNav(aboutBtn, navButtons);
@@ -209,7 +242,91 @@ public class DashboardApp extends Application {
         });
 
 
+
+        SubscriptionService service = new SubscriptionService(db);
+        service.startRepeatingNotification(primaryStage);
+
+
+        if (!db.isActivated()) {
+            TrialManager.scheduleTrialNotifications();
+        }
+
+
     }
+
+    private void promptForActivationKey() {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Activation Required");
+        dialog.setHeaderText("Your trial has ended");
+        dialog.setContentText("Enter your activation key:");
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(key -> {
+            if (isValidKey(key)) {
+                db.markAsActivated();  // Update DB flag
+                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                alert.setTitle("Activation Required");
+                alert.setHeaderText("Activation Required");
+                alert.setContentText("Activation successful.");
+                alert.showAndWait();
+//                showSuccessMessage();  // Optional transient UI feedback
+            } else {
+//                showSuccessMessage();
+
+                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                alert.setTitle("Activation Required");
+                alert.setHeaderText("Activation Required");
+                alert.setContentText("Activation failed.");
+                alert.showAndWait();
+
+            }
+        });
+    }
+
+    public static void showSuccessMessage(String message, Window contextWindow) {
+        Label label = new Label(message);
+        label.setStyle("""
+        -fx-background-color: #4CAF50;
+        -fx-text-fill: white;
+        -fx-padding: 10;
+        -fx-font-weight: bold;
+        -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 6, 0, 0, 2);
+    """);
+
+        Popup popup = new Popup();
+        popup.getContent().add(label);
+        popup.setAutoHide(true);
+
+        // Float bottom-right with margin
+        double marginX = 20;
+        double marginY = 40;
+        double x = contextWindow.getX() + contextWindow.getWidth() - label.prefWidth(-1) - marginX;
+        double y = contextWindow.getY() + contextWindow.getHeight() - label.prefHeight(-1) - marginY;
+
+        popup.show(contextWindow, x, y);
+
+        PauseTransition delay = new PauseTransition(Duration.seconds(3));
+        delay.setOnFinished(e -> popup.hide());
+        delay.play();
+    }
+
+
+    public boolean isValidKey(String key) {
+        // Example: validate against a predefined key or pattern
+        return "LIBRA-2025-KEY".equals(key);
+    }
+
+
+    private boolean isTrialExpired() {
+        LocalDate launchDate = db.getFirstLaunchDate();
+        LocalDate today = LocalDate.now();
+        return today.isAfter(launchDate.plusDays(1)) && !db.isActivated();
+    }
+
+
+
+
+
 
     public String buildMissingListSummary(List<PendingBook> books) {
         StringBuilder sb = new StringBuilder("📡 Connect to internet to load descriptions:\n");

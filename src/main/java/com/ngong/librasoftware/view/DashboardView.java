@@ -266,6 +266,10 @@ public class DashboardView extends VBox {
         // Fade animation
         AnimationUtils.applyFadeIn(this, 600);
 
+
+
+
+
     }
 
 private void animateCountUp(Label label, int target, Duration duration) {

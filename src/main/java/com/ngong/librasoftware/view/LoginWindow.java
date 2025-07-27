@@ -22,6 +22,8 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
+import java.sql.SQLException;
+
 public class LoginWindow extends Application {
     private final DatabaseService db = new DatabaseService();
 
@@ -206,7 +208,11 @@ public class LoginWindow extends Application {
                 popup.close();
                 primarystage.close();
 //                stage.close();
-                new DashboardApp().start(new Stage());
+                try {
+                    new DashboardApp().start(new Stage());
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
             });
         }).start();
 

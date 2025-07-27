@@ -26,6 +26,7 @@ public class DatabaseService {
 
     private Connection connection;
     private String DB_URL;
+    private static final long TRIAL_DURATION_MILLIS = 60_000; // 1 minute
 
     public DatabaseService() {
         String userHome = System.getProperty("user.home");
@@ -1644,7 +1645,7 @@ public void clearReturnStatusForBooks(int borrowerId, Map<Integer, Integer> quan
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return "N/A";
+        return "Unknown School";
     }
 
 
@@ -2734,5 +2735,85 @@ public String generateFallbackIsbn(String title, String author) {
         return count;
     }
 
+    public boolean isUserSubscribed() {
+        String sql = "SELECT subscribed FROM users LIMIT 1";
+        try (PreparedStatement stmt = DriverManager.getConnection(DB_URL).prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            return rs.next() && rs.getBoolean("subscribed");
+        } catch (SQLException e) {
+//            e.printStackTrace();
+//            ErrorNotifier.show("Something went wrong during subscription", e);
+            return false;
+        }
+    }
 
+    public void setUserSubscribed(boolean subscribed) {
+        String sql = "UPDATE users SET subscribed = ?";
+        try (PreparedStatement stmt = DriverManager.getConnection(DB_URL).prepareStatement(sql)) {
+            stmt.setBoolean(1, subscribed);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+//            e.printStackTrace();
+//            ErrorNotifier.show("Something went wrong during subscription", e);
+        }
+    }
+
+    public boolean hasFirstLaunchDate() {
+        String sql = "SELECT firstLaunch FROM activation LIMIT 1";
+        try (PreparedStatement stmt = DriverManager.getConnection(DB_URL).prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            return rs.next() && rs.getString("firstLaunch") != null;
+        } catch (SQLException e) {
+//            ErrorNotifier.show("hasFirstLaunchDate", e);
+            return false;
+        }
+    }
+
+    public void setFirstLaunchDate(LocalDate date) {
+        String sql = "INSERT OR REPLACE INTO activation (firstLaunch, isActivated) VALUES (?, 0)";
+        try (PreparedStatement stmt = DriverManager.getConnection(DB_URL).prepareStatement(sql)) {
+            stmt.setString(1, date.toString());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+//            ErrorNotifier.show("setFirstLaunchDate", e);
+        }
+    }
+
+
+
+    public LocalDate getFirstLaunchDate() {
+        String sql = "SELECT firstLaunch FROM activation LIMIT 1";
+        try (PreparedStatement stmt = DriverManager.getConnection(DB_URL).prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                String dateStr = rs.getString("firstLaunch");
+                if (dateStr != null && !dateStr.isBlank()) {
+                    return LocalDate.parse(dateStr);
+                }
+            }
+        } catch (SQLException e) {
+//            ErrorNotifier.show("getFirstLaunchDate", e);
+        }
+        return LocalDate.now(); // fallback for safety
+    }
+
+    public boolean isActivated() {
+        String sql = "SELECT isActivated FROM activation LIMIT 1";
+        try (PreparedStatement stmt = DriverManager.getConnection(DB_URL).prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            return rs.next() && rs.getInt("isActivated") == 1;
+        } catch (SQLException e) {
+//            ErrorNotifier.show("isActivated", e);
+            return false;
+        }
+    }
+
+    public void markAsActivated() {
+        String sql = "UPDATE activation SET isActivated = 1";
+        try (PreparedStatement stmt = DriverManager.getConnection(DB_URL).prepareStatement(sql)) {
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+//            ErrorNotifier.show("markAsActivated", e);
+        }
+    }
 }
