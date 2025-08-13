@@ -463,7 +463,15 @@ public class CheckOutView extends HBox {
         // --- Book Entry Form ---
         VBox bookForm = new VBox(10);
         bookForm.setPrefWidth(400);
-//        bookForm.setStyle("-fx-border-color: GREEN;-fx-border-width: 2px;-fx-border-radius: 15");
+
+
+
+        TextField bookTitleField = new TextField();
+        bookTitleField.setPromptText("Book Title");
+        bookTitleField.getStyleClass().add("settings-textfield");
+
+
+
 
         ComboBox<String> quantityComboBox = new ComboBox<>();
         quantityComboBox.setPromptText("Copies");
@@ -497,10 +505,25 @@ public class CheckOutView extends HBox {
                 }
             }
 
+            if (!bookTitleField.getText().isEmpty()) {
+                if (Integer.parseInt(quantityComboBox.getValue().replaceAll("[^0-9]", "")) > db.getRemainingBooksNo(bookTitleField.getText())) {
+                    quantityComboBox.setStyle("-fx-border-color: #e11111; -fx-border-width: 2px;");
+                    WarningMessage msg = new WarningMessage(
+                            "No more copies beyond "+db.getRemainingBooksNo(bookTitleField.getText()),
+                            Duration.seconds(5),
+                            contentArea
+                    );
+                    contentArea.getChildren().add(msg);
+                    StackPane.setAlignment(msg, Pos.CENTER);
+                    quantityComboBox.setValue(db.getRemainingBooksNo(bookTitleField.getText())+" Copies");
+
+//                currentIndex=1;
+                } else {
+                    quantityComboBox.setStyle(""); // Reset style
+                }
+            }
             event.consume(); // suppress default scroll behavior
         });
-
-
 
 
 
@@ -515,15 +538,6 @@ public class CheckOutView extends HBox {
                 studentID.setPromptText("Student ID");
             }
         });
-
-
-
-
-        TextField bookTitleField = new TextField();
-        bookTitleField.setPromptText("Book Title");
-        bookTitleField.getStyleClass().add("settings-textfield");
-//        HBox bookBox=new HBox();
-//        bookBox.getChildren().addAll(bookTitleField,quantityComboBox);
 
 
         TextField author = new TextField(); author.setPromptText("Author");
@@ -651,8 +665,6 @@ public class CheckOutView extends HBox {
             }
         });
 
-
-
         bookTitleField.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             if (!titleClickPopup.isShowing()) return;
 
@@ -672,7 +684,7 @@ public class CheckOutView extends HBox {
                 case TAB -> {
                     if (total == 1) {
                         Label selected = (Label) titleClickBox.getChildren().get(0);
-                        String[] split = selected.getText().split("  —  ");
+                        String[] split = selected.getText().split(" — ");
                         String book_title = split[0];
                         String book_author = split.length > 1 ? split[1] : "";
                         bookTitleField.setText(book_title);

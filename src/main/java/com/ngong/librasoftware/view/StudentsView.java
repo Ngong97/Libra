@@ -41,6 +41,7 @@ import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.List;
 import java.util.function.Function;
@@ -207,6 +208,12 @@ public class StudentsView extends VBox {
             }
 
             clearSelectedStudents();
+            try {
+                db.saveClearedStudentRecords();
+                db.removeClearedRecords();
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
             filterStudents(nameSearch,table);
         });
 
@@ -347,7 +354,6 @@ public class StudentsView extends VBox {
 
 
         table = new TableView<>();
-//        CheckOutView.BookEntry2 book=new CheckOutView.BookEntry2();
         List<StudentRecord> students = db.getStudentBorrowingRecords();
         ObservableList<StudentRecord> tableData = FXCollections.observableArrayList();
         table.setItems(tableData);
@@ -386,7 +392,7 @@ public class StudentsView extends VBox {
                     StudentRecord selectedItem = row.getItem();
                     new EditStudentPopup(selectedItem, () -> {
                         contentArea.getChildren().setAll(new StudentsView(contentArea));
-                    }).show();
+                    },contentArea).show();
                 }
             });
 
@@ -481,13 +487,10 @@ public class StudentsView extends VBox {
                 row.createCell(0).setCellValue(record.getSerialNum());
                 row.createCell(1).setCellValue(record.getStudentName());
                 row.createCell(2).setCellValue(record.getStudentGender());
-                row.createCell(3).setCellValue(record.getStudentId());
+                row.createCell(3).setCellValue(record.getIdentity());
                 row.createCell(4).setCellValue(record.getStudentClass());
                 row.createCell(5).setCellValue(record.getBookTitle());
                 row.createCell(6).setCellValue(record.getBookAuthor());
-
-//                row.createCell(5).setCellValue(formatMultiline(record.getBookTitle()));
-//                row.createCell(6).setCellValue(formatMultiline(record.getBookAuthor()));
                 row.createCell(7).setCellValue(record.getBorrowDate());
                 row.createCell(8).setCellValue(record.getReturnDate());
                 row.createCell(9).setCellValue(record.getStatus());
@@ -507,10 +510,6 @@ public class StudentsView extends VBox {
         }
     }
 
-    private String formatMultiline(String value) {
-        if (value == null || value.isBlank()) return "";
-        return String.join("\n", value.split(",\\s*"));
-    }
 
     private void animateTableRows(List<StudentRecord> students, ObservableList<StudentRecord> tableData, Duration delayPerRow) {
         Timeline timeline = new Timeline();
@@ -571,25 +570,6 @@ public class StudentsView extends VBox {
         Map<Integer, Spinner<Integer>> quantitySpinners = new HashMap<>();
         Map<Integer, CheckBox> selectionCheckboxes = new HashMap<>();
 
-//        for (Integer bookId : bookIds) {
-//            String title = bookIdTitleMap.get(bookId);
-//            int borrowed = borrowedQuantities.getOrDefault(bookId, 1);
-//
-//            CheckBox selectBox = new CheckBox(title + " (Borrowed: " + borrowed + ")");
-//            Spinner<Integer> spinner = new Spinner<>(0, borrowed, borrowed);
-//            spinner.setEditable(true);
-//            spinner.setDisable(true); // Start disabled
-//
-//            // Enable quantity input only if book is selected
-//            selectBox.setOnAction(e -> spinner.setDisable(!selectBox.isSelected()));
-//
-//            selectionCheckboxes.put(bookId, selectBox);
-//            quantitySpinners.put(bookId, spinner);
-//
-//            HBox row = new HBox(10, selectBox, spinner);
-//            row.setAlignment(Pos.CENTER_LEFT);
-//            bookItemsContainer.getChildren().add(row);
-//        }
 
         for (Integer bookId : bookIds) {
             String title = bookIdTitleMap.get(bookId);
@@ -661,30 +641,6 @@ public class StudentsView extends VBox {
 
 
 
-//    private void clearReturnedStatus(String studentName) {
-//        int exactId = db.getStudentIdWithUnreturnedBooks(studentName);
-//        List<Integer> bookIds = db.getBookIdsForStudent(exactId);
-//
-//        if (bookIds.isEmpty()) {
-//            showAlert("Error", "No books borrowed by " + studentName + " found.");
-//            return;
-//        }
-//
-//        Map<Integer, Integer> borrowedQuantities = db.getBorrowedQuantities(exactId, bookIds);
-//
-//        Map<Integer, Integer> selectedClearances = showBookSelectionDialog(
-//                studentName,
-//                bookIds,
-//                db.getBookTitlesForIds(bookIds),
-//                borrowedQuantities
-//        );
-//
-//        if (!selectedClearances.isEmpty()) {
-//            db.clearReturnStatusForBooks(exactId, selectedClearances);
-//            lastClearedStudents.put(exactId, new HashMap<>(selectedClearances));
-//        }
-//    }
-
     private void clearReturnedStatus(String studentName) {
         int exactId = db.getStudentIdWithUnreturnedBooks(studentName);
         List<Integer> bookIds = db.getBookIdsForStudent(exactId);
@@ -707,7 +663,6 @@ public class StudentsView extends VBox {
 
                 db.clearReturnStatusForBooks(exactId, autoClearMap);
                 lastClearedStudents.put(exactId, new HashMap<>(autoClearMap));
-
                 WarningMessage msg = new WarningMessage(
                         "Cleared successfully!",
                         Duration.seconds(5),

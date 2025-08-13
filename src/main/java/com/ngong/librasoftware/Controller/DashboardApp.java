@@ -2,7 +2,6 @@ package com.ngong.librasoftware.Controller;
 
 import com.ngong.librasoftware.DAO.DatabaseService;
 import com.ngong.librasoftware.model.PendingBook;
-import com.ngong.librasoftware.service.SubscriptionService;
 import com.ngong.librasoftware.utils.TransientMessage;
 import com.ngong.librasoftware.utils.TrialManager;
 import com.ngong.librasoftware.utils.UIUtils;
@@ -217,7 +216,7 @@ public class DashboardApp extends Application {
         scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
 
         primaryStage.setScene(scene);
-        primaryStage.setTitle("Libra Library System");
+        primaryStage.setTitle("Libra");
         primaryStage.show();
 
         Platform.runLater(() -> {
@@ -242,11 +241,6 @@ public class DashboardApp extends Application {
         });
 
 
-
-        SubscriptionService service = new SubscriptionService(db);
-        service.startRepeatingNotification(primaryStage);
-
-
         if (!db.isActivated()) {
             TrialManager.scheduleTrialNotifications();
         }
@@ -262,19 +256,18 @@ public class DashboardApp extends Application {
 
         Optional<String> result = dialog.showAndWait();
         result.ifPresent(key -> {
-            if (isValidKey(key)) {
+            if (db.isValidKey(key)) {
                 db.markAsActivated();  // Update DB flag
                 Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-                alert.setTitle("Activation Required");
-                alert.setHeaderText("Activation Required");
-                alert.setContentText("Activation successful.");
+//                alert.setTitle("Success!");
+                alert.setContentText("Activation successful!");
                 alert.showAndWait();
 //                showSuccessMessage();  // Optional transient UI feedback
             } else {
 //                showSuccessMessage();
 
                 Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-                alert.setTitle("Activation Required");
+//                alert.setTitle("Activation Required");
                 alert.setHeaderText("Activation Required");
                 alert.setContentText("Activation failed.");
                 alert.showAndWait();
@@ -311,16 +304,10 @@ public class DashboardApp extends Application {
     }
 
 
-    public boolean isValidKey(String key) {
-        // Example: validate against a predefined key or pattern
-        return "LIBRA-2025-KEY".equals(key);
-    }
-
-
     private boolean isTrialExpired() {
         LocalDate launchDate = db.getFirstLaunchDate();
         LocalDate today = LocalDate.now();
-        return today.isAfter(launchDate.plusDays(1)) && !db.isActivated();
+        return today.isAfter(launchDate.plusDays(60)) && !db.isActivated();
     }
 
 

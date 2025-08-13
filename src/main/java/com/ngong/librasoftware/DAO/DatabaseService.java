@@ -3,14 +3,12 @@ package com.ngong.librasoftware.DAO;
 
 import com.ngong.librasoftware.model.*;
 import com.ngong.librasoftware.view.CheckOutView;
-import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ComboBox;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.*;
-import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -31,78 +29,9 @@ public class DatabaseService {
     public DatabaseService() {
         String userHome = System.getProperty("user.home");
         String dbPath = userHome + "/libraDB/currentDB/libra.db";
-
         this.DB_URL = "jdbc:sqlite:" + dbPath;
-
-        try (Connection conn = DriverManager.getConnection(DB_URL)) {
-            // Connection initialized; you may add validation here if needed
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 
-
-    public void connect() {
-        try {
-            if (connection == null || connection.isClosed()) {
-                connection = DriverManager.getConnection(DB_URL);
-                showInfo("✅ Connected to database.");
-            }
-        } catch (SQLException e) {
-            showError("❌ Failed to connect: " + e.getMessage());
-        }
-    }
-
-    public void disconnect() {
-        try {
-            if (connection != null && !connection.isClosed()) {
-                connection.close();
-                showInfo("🔌 Database disconnected.");
-            }
-        } catch (SQLException e) {
-            showError("❌ Error while disconnecting: " + e.getMessage());
-        } finally {
-            connection = null;
-        }
-    }
-
-    public void setDatabasePath(String newPath) {
-        disconnect(); // Clean shutdown
-        this.DB_URL = "jdbc:sqlite:" + newPath;
-    }
-
-    public Connection getConnection() throws SQLException {
-        if (connection == null || connection.isClosed()) connect();
-        return connection;
-    }
-
-    public boolean isConnected() {
-        try {
-            return connection != null && !connection.isClosed();
-        } catch (SQLException e) {
-            return false;
-        }
-    }
-
-    private void showInfo(String message) {
-        Platform.runLater(() -> {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Database Status");
-            alert.setHeaderText(null);
-            alert.setContentText(message);
-            alert.show();
-        });
-    }
-
-    private void showError(String message) {
-        Platform.runLater(() -> {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Database Error");
-            alert.setHeaderText(null);
-            alert.setContentText(message);
-            alert.show();
-        });
-    }
 
     private String querySingle(String sql) {
         try (Connection conn = DriverManager.getConnection(DB_URL);
@@ -311,9 +240,6 @@ public int countOverdueBooks(String name, String grade, String gender, String te
     }
 
 
-
-
-
     public int countTotalInventory() {
         try (PreparedStatement stmt = DriverManager.getConnection(DB_URL).prepareStatement("SELECT SUM(total_quantity) FROM library_books");
              ResultSet rs = stmt.executeQuery()) {
@@ -408,41 +334,41 @@ public int countOverdueBooks(String name, String grade, String gender, String te
     public List<StudentRecord> getStudentBorrowingRecords() {
         List<StudentRecord> list = new ArrayList<>();
         String sql = """
-SELECT
-    s.student_id,
-    s.identity,
-    s.name,
-    s.gender,
-    s.student_class,
-    COALESCE(MAX(br.term), '—') AS term,
-    COALESCE(MIN(br.borrow_date), '—') AS borrow_date,
-    COALESCE(MAX(br.return_date), '—') AS return_date,
-    COALESCE(GROUP_CONCAT(
-        CASE
-            WHEN br.quantity > 1 THEN b.title || ' (' || br.quantity || ' copies)'
-            ELSE b.title
-        END,
-        ', '
-    ), '—') AS book_titles,
-    COALESCE(GROUP_CONCAT(DISTINCT b.author), '—') AS authors,
-    COALESCE(GROUP_CONCAT(DISTINCT b.isbn), '—') AS isbns,
-    CASE
-        WHEN EXISTS (
-            SELECT 1 FROM borrowings b2
-            WHERE b2.student_id = s.student_id
-              AND b2.returned = 0
-              AND julianday('now') - julianday(b2.borrow_date) > b2.duration
-        )
-        THEN 'Delayed'
-        ELSE 'On Time'
-    END AS status
-FROM students s
-JOIN borrowings br ON br.student_id = s.student_id
-JOIN books b ON br.book_id = b.book_id
-WHERE br.returned = 0
-GROUP BY s.student_id
-ORDER BY s.name
-""";
+        SELECT
+            s.student_id,
+            s.identity,
+            s.name,
+            s.gender,
+            s.student_class,
+            COALESCE(MAX(br.term), '—') AS term,
+            COALESCE(MIN(br.borrow_date), '—') AS borrow_date,
+            COALESCE(MAX(br.return_date), '—') AS return_date,
+            COALESCE(GROUP_CONCAT(
+                CASE
+                    WHEN br.quantity > 1 THEN b.title || ' (' || br.quantity || ' copies)'
+                    ELSE b.title
+                END,
+                ', '
+            ), '—') AS book_titles,
+            COALESCE(GROUP_CONCAT(DISTINCT b.author), '—') AS authors,
+            COALESCE(GROUP_CONCAT(DISTINCT b.isbn), '—') AS isbns,
+            CASE
+                WHEN EXISTS (
+                    SELECT 1 FROM borrowings b2
+                    WHERE b2.student_id = s.student_id
+                      AND b2.returned = 0
+                      AND julianday('now') - julianday(b2.borrow_date) > b2.duration
+                )
+                THEN 'Delayed'
+                ELSE 'On Time'
+            END AS status
+        FROM students s
+        JOIN borrowings br ON br.student_id = s.student_id
+        JOIN books b ON br.book_id = b.book_id
+        WHERE br.returned = 0
+        GROUP BY s.student_id
+        ORDER BY s.name
+        """;
 
         try (Connection conn = DriverManager.getConnection(DB_URL);
              Statement stmt = conn.createStatement();
@@ -843,31 +769,6 @@ public void issueBookToStudent(String identity, String name, String gender, Stri
 }
 
 
-    public int saveBook(CheckOutView.BookEntry2 book) throws SQLException {
-        String sql = "INSERT OR IGNORE INTO books (title, author, isbn) VALUES (?, ?, ?)";
-        try (PreparedStatement stmt = DriverManager.getConnection(DB_URL).prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
-            stmt.setString(1, book.title);
-            stmt.setString(2, book.author);
-            stmt.setString(3, book.isbn);
-            stmt.executeUpdate();
-            return stmt.getGeneratedKeys().getInt(1);
-        }
-    }
-
-    public int countReturnedBooks() {
-        String sql = "SELECT COUNT(*) FROM borrowings WHERE returned = 1";
-        try (Connection conn = DriverManager.getConnection(DB_URL);
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-            return rs.next() ? rs.getInt(1) : 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return 0;
-        }
-    }
-
-
-
     public Map<String, Integer> getActiveStudentsByClass() {
         String sql = """
         SELECT s.student_class AS class_name, COUNT(DISTINCT s.student_id) AS active_count
@@ -894,67 +795,6 @@ public void issueBookToStudent(String identity, String name, String gender, Stri
         return result;
     }
 
-    public Map<String, Integer> getActiveStudentsByClass(String term, String studentClass, Month month) {
-        StringBuilder sql = new StringBuilder("""
-        SELECT s.student_class AS class_name, COUNT(DISTINCT s.student_id) AS active_count
-        FROM borrowings b
-        JOIN students s ON s.student_id = b.student_id
-        WHERE b.returned = 0
-    """);
-
-        List<Object> params = new ArrayList<>();
-
-        if (!"All".equalsIgnoreCase(term)) {
-            sql.append(" AND b.term = ?");
-            params.add(term);
-        }
-
-        if (!"All".equalsIgnoreCase(studentClass)) {
-            sql.append(" AND s.student_class = ?");
-            params.add(studentClass);
-        }
-
-        if (month != null) {
-            sql.append(" AND strftime('%m', b.borrow_date) = ?");
-            params.add(String.format("%02d", month.getValue()));
-        }
-
-        sql.append(" GROUP BY s.student_class ORDER BY active_count DESC");
-
-        Map<String, Integer> result = new LinkedHashMap<>();
-        try (Connection conn = DriverManager.getConnection(DB_URL);
-             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
-
-            for (int i = 0; i < params.size(); i++) {
-                stmt.setObject(i + 1, params.get(i));
-            }
-
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                result.put(rs.getString("class_name"), rs.getInt("active_count"));
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return result;
-    }
-
-    public List<String> getAllTerms() {
-        String sql = "SELECT DISTINCT term FROM borrowings WHERE term IS NOT NULL ORDER BY term";
-        List<String> terms = new ArrayList<>();
-        try (Connection conn = DriverManager.getConnection(DB_URL);
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-            while (rs.next()) {
-                terms.add(rs.getString("term"));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return terms;
-    }
 
     public List<String> getAllStudentClasses() {
         String sql = "SELECT DISTINCT student_class FROM students WHERE student_class IS NOT NULL ORDER BY student_class";
@@ -1856,47 +1696,10 @@ public void clearReturnStatusForBooks(int borrowerId, Map<Integer, Integer> quan
         return "Unknown School";
     }
 
-    public boolean resetPassword(String email, String newPassword) {
-        String sql = "UPDATE users SET password = ? WHERE email = ?";
-        try (Connection conn = DriverManager.getConnection(DB_URL);
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, newPassword);
-            pstmt.setString(2, email);
-            return pstmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
 
-    public boolean resetUsername(String email, String oldUsername, String newUsername) {
-        String sql = "UPDATE users SET librarian = ? WHERE email = ? AND librarian = ?";
-        try (Connection conn = DriverManager.getConnection(DB_URL);
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, newUsername);
-            pstmt.setString(2, email);
-            pstmt.setString(3, oldUsername);
-            return pstmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
 
-    public boolean resetUsernameAndPassword(String email, String oldUsername, String newUsername, String newPassword) {
-        String sql = "UPDATE user SET librarian = ?, password = ? WHERE email = ? AND librarian = ?";
-        try (Connection conn = DriverManager.getConnection(DB_URL);
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, newUsername);
-            pstmt.setString(2, newPassword);
-            pstmt.setString(3, email);
-            pstmt.setString(4, oldUsername);
-            return pstmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
+
+
 
     public boolean checkCredentials(String librarian, String password) {
         boolean credentialsMatch = false;
@@ -2308,65 +2111,6 @@ public String generateFallbackIsbn(String title, String author) {
         }
     }
 
-
-    public String generateOnlineCategoryDescription(String title) {
-        try {
-            String query = URLEncoder.encode(title, StandardCharsets.UTF_8);
-            String url = "https://openlibrary.org/search.json?q=" + query;
-
-            HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-            conn.setRequestMethod("GET");
-
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
-                String response = reader.lines().collect(Collectors.joining());
-
-                JSONObject json = new JSONObject(response);
-                JSONArray docs = json.getJSONArray("docs");
-                if (!docs.isEmpty()) {
-                    JSONObject book = docs.getJSONObject(0);
-                    if (book.has("subject")) {
-                        JSONArray subjects = book.getJSONArray("subject");
-                        return "A book focused on: " + subjects.join(", ").replaceAll("\"", "") + ".";
-                    }
-                }
-            }
-        } catch (Exception e) {
-            // fallback if the API fails
-        }
-        return generateOfflineCategoryDescription(title);
-    }
-
-
-    public int addNewBook(String title, String author, String isbn) throws SQLException {
-        String insertSql = "INSERT INTO books (title, author, isbn) VALUES (?, ?, ?)";
-
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
-
-            stmt.setString(1, title.trim());
-            stmt.setString(2, author.trim());
-
-            // Handle optional ISBN input
-            String cleanedIsbn = (isbn == null || isbn.trim().isEmpty()) ? null : isbn.trim();
-            stmt.setString(3, cleanedIsbn);
-
-            stmt.executeUpdate();
-
-            try (ResultSet keys = stmt.getGeneratedKeys()) {
-                if (keys.next()) {
-                    return keys.getInt(1); // ✅ Return generated book_id
-                } else {
-                    throw new SQLException("❌ Book inserted but ID not returned.");
-                }
-            }
-
-        } catch (SQLException ex) {
-            // Optional: Add refined error reporting or fallback logic here
-            throw new SQLException("❌ Failed to insert new book: " + ex.getMessage(), ex);
-        }
-    }
-
-
     private String generateOfflineCategoryDescription(String title) {
         title = title.toLowerCase();
 
@@ -2649,6 +2393,26 @@ public String generateFallbackIsbn(String title, String author) {
     }
 
 
+
+    private void insertIntoClearedStdTable(int serial, String studentName, String identity, String gender, String std_class, String term, String book_titles, String authors) {
+        try (Connection conn = DriverManager.getConnection(DB_URL)) {
+                PreparedStatement insert = conn.prepareStatement("INSERT INTO cleared_students (serial,student_name,identity,gender,class,term, book_titles,authors) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+                insert.setInt(1, serial);
+                insert.setString(2, studentName);
+                insert.setString(3, identity);
+                insert.setString(4, gender);
+                insert.setString(5, std_class);
+                insert.setString(6, term);
+                insert.setString(7, book_titles);
+                insert.setString(8, authors);
+                insert.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+
+    }
+
     public boolean removeClearedRecords() {
         String deleteBorrowings = "DELETE FROM borrowings WHERE returned = 1";
 
@@ -2709,54 +2473,27 @@ public String generateFallbackIsbn(String title, String author) {
             return 0;
         }
     }
+
+    public int getRegisteredBooksNo(String title) {
+        String sql = "SELECT SUM(total_quantity) FROM library_books WHERE title = ?";
+        try (PreparedStatement stmt = DriverManager.getConnection(DB_URL).prepareStatement(sql)){
+             stmt.setString(1,title);
+             ResultSet rs = stmt.executeQuery();
+            return rs.next() ? rs.getInt(1) : 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
     public int getRemainingBooksNo() {
         return getRegisteredBooksNo() - countOverdueBooks("","","","",null,"","");
     }
 
-
-    public int countOverdueBooks() {
-        int count = 0;
-        String query = "SELECT SUM(bd.quantity) FROM borrowings bd " +
-                "JOIN students s ON bd.student_id = s.student_id " +
-                "JOIN books b ON bd.book_id = b.book_id " +
-                "WHERE bd.returned = 0 AND bd.return_date < CURRENT_DATE";
-
-        try (Connection conn = DriverManager.getConnection(DB_URL);
-             PreparedStatement pstmt = conn.prepareStatement(query);
-             ResultSet rs = pstmt.executeQuery()) {
-
-            if (rs.next()) {
-                count = rs.getInt(1); // Total quantity of overdue books
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return count;
+    public int getRemainingBooksNo(String title) {
+        return getRegisteredBooksNo(title) - countOverdueBooks("","","","",null,title,"");
     }
 
-    public boolean isUserSubscribed() {
-        String sql = "SELECT subscribed FROM users LIMIT 1";
-        try (PreparedStatement stmt = DriverManager.getConnection(DB_URL).prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-            return rs.next() && rs.getBoolean("subscribed");
-        } catch (SQLException e) {
-//            e.printStackTrace();
-//            ErrorNotifier.show("Something went wrong during subscription", e);
-            return false;
-        }
-    }
 
-    public void setUserSubscribed(boolean subscribed) {
-        String sql = "UPDATE users SET subscribed = ?";
-        try (PreparedStatement stmt = DriverManager.getConnection(DB_URL).prepareStatement(sql)) {
-            stmt.setBoolean(1, subscribed);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-//            e.printStackTrace();
-//            ErrorNotifier.show("Something went wrong during subscription", e);
-        }
-    }
 
     public boolean hasFirstLaunchDate() {
         String sql = "SELECT firstLaunch FROM activation LIMIT 1";
@@ -2816,4 +2553,52 @@ public String generateFallbackIsbn(String title, String author) {
 //            ErrorNotifier.show("markAsActivated", e);
         }
     }
+
+    public boolean isValidKey(String key) {
+        // Example: validate against a predefined key or pattern
+        return "LIBRA-2025-KEY".equals(key);
+    }
+
+    public void saveClearedStudentRecords() throws SQLException {
+        String selectQuery = """
+        SELECT
+            s.name AS studentName,
+            s.identity,
+            s.gender,
+            s.student_class AS class,
+            br.term,
+            GROUP_CONCAT(bk.title, ', ') AS booktitles,
+            GROUP_CONCAT(bk.author, ', ') AS authors
+        FROM students s
+        JOIN borrowings br ON br.student_id = s.student_id
+        JOIN books bk ON br.book_id = bk.book_id
+        WHERE br.returned = 1
+        GROUP BY s.student_id, br.term
+        """;
+
+        String insertQuery = """
+        INSERT INTO cleared_students (
+            student_name, identity, gender, class, term, book_titles, authors
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        """;
+
+        try (
+                Connection conn = DriverManager.getConnection(DB_URL);
+                PreparedStatement selectStmt = conn.prepareStatement(selectQuery);
+                ResultSet rs = selectStmt.executeQuery();
+                PreparedStatement insertStmt = conn.prepareStatement(insertQuery)
+        ) {
+            while (rs.next()) {
+                insertStmt.setString(1, rs.getString("studentName"));
+                insertStmt.setString(2, rs.getString("identity"));
+                insertStmt.setString(3, rs.getString("gender"));
+                insertStmt.setString(4, rs.getString("class"));
+                insertStmt.setString(5, rs.getString("term"));
+                insertStmt.setString(6, rs.getString("booktitles"));
+                insertStmt.setString(7, rs.getString("authors"));
+                insertStmt.executeUpdate();
+            }
+        }
+    }
+
 }

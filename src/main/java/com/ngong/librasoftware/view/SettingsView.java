@@ -2,6 +2,8 @@ package com.ngong.librasoftware.view;
 
 import com.ngong.librasoftware.DAO.DatabaseService;
 import com.ngong.librasoftware.utils.AnimationUtils;
+import com.ngong.librasoftware.utils.NotificationUtil;
+import com.ngong.librasoftware.utils.TrialManager;
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
 import javafx.animation.SequentialTransition;
@@ -18,18 +20,11 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.util.Duration;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.*;
-import java.sql.ResultSet;
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class SettingsView extends BorderPane {
@@ -107,16 +102,11 @@ public class SettingsView extends BorderPane {
         databasePane.setExpanded(false); // collapsed by default
         databasePane.setMaxWidth(400);
 
+        TitledPane activationPane = new TitledPane("Activation Settings", showActivationSettings());
+        activationPane.setExpanded(false); // collapsed by default
+        activationPane.setMaxWidth(400);
 
-        // Default view
-//        showAccountSettings();
-
-        // Navigation actions
-//        accountBtn.setOnAction(e -> showAccountSettings());
-//        dbBtn.setOnAction(e -> showDatabaseSettings());
-
-
-        navMenu.getChildren().addAll(accountPane, databasePane);
+        navMenu.getChildren().addAll(accountPane, databasePane,activationPane);
 
 
         // Layout
@@ -416,69 +406,7 @@ public class SettingsView extends BorderPane {
 
         });
 
-
-        Button exportCleared=new Button("Export Cleared Records");
-        exportCleared.setCursor(Cursor.HAND);
-        exportCleared.setStyle("-fx-font-weight: bold");
-        exportCleared.setEffect(blackShadow);
-        exportCleared.setOnMouseEntered(event -> {
-            exportCleared.setScaleX(1.1);
-            exportCleared.setEffect(blueShadow);
-        });
-        exportCleared.setOnMouseExited(event -> {
-            exportCleared.setScaleX(1.0);
-            exportCleared.setEffect(blackShadow);
-        });
-        ScaleTransition pressExport = new ScaleTransition(Duration.millis(80), exportCleared);
-        pressExport.setToX(0.95);
-        pressExport.setToY(0.95);
-
-        ScaleTransition releaseExport = new ScaleTransition(Duration.millis(80), exportCleared);
-        releaseExport.setToX(1.0);
-        releaseExport.setToY(1.0);
-
-        exportCleared.setOnMousePressed(e -> pressExport.play());
-        exportCleared.setOnMouseReleased(e -> releaseExport.play());
-
-        exportCleared.setOnAction(e -> {
-            // 🔒 Step 1: Confirm user intent
-            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-            confirm.setTitle("Confirm Export");
-            confirm.setHeaderText(null);
-            confirm.setContentText("""
-        Are you sure you want to export cleared records?
-        After export, cleared records are permanently deleted from the database.
-        """);
-
-            Optional<ButtonType> result = confirm.showAndWait();
-            if (result.isEmpty() || result.get() != ButtonType.OK) return;
-
-            // 🔐 Step 2: Prompt for password
-            TextInputDialog passwordDialog = new TextInputDialog();
-            passwordDialog.setTitle("Authentication Required");
-            passwordDialog.setHeaderText("Enter your password to proceed");
-            passwordDialog.setContentText("Password:");
-
-            Optional<String> passwordInput = passwordDialog.showAndWait();
-            if (passwordInput.isEmpty()) return;
-
-            String password = passwordInput.get().trim();
-            if (!db.isValidPassword(password)) {
-            new Alert(Alert.AlertType.WARNING,"❌ Authentication failed. Export canceled.").show();
-                return;
-            }
-
-            // ✅ Step 3: Continue to export logic
-            exportClearedStudents(); // Your existing secure export method
-
-
-
-
-        });
-
-
-
-        VBox backupBox = new VBox(10, backupLabel, new HBox(20,backupBtn,exportCleared));
+        VBox backupBox = new VBox(10, backupLabel, new HBox(20,backupBtn));
         backupBox.setPadding(new Insets(10));
 
         borderPane.getChildren().addAll(
@@ -488,60 +416,100 @@ public class SettingsView extends BorderPane {
 
         return borderPane;
     }
-    public void exportClearedStudents() {
-        FileChooser chooser = new FileChooser();
-        chooser.setTitle("Save Cleared Student Records");
-        chooser.setInitialFileName("cleared_students.xlsx");
-        chooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("Excel Files", "*.xlsx")
-        );
 
-        File selectedFile = chooser.showSaveDialog(this.getScene().getWindow());
-        if (selectedFile == null) return; // user cancelled
 
-        try (Workbook workbook = new XSSFWorkbook();
-             ResultSet rs = db.getClearedStudentRecords()) {
+    public VBox showActivationSettings() {
+        DropShadow blackShadow = new DropShadow();
+        blackShadow.setOffsetY(2.0);
+        blackShadow.setColor(Color.BLACK); // Set shadow color and transparency
 
-            Sheet sheet = workbook.createSheet("Cleared Students");
+        DropShadow blueShadow = new DropShadow();
+        blackShadow.setOffsetY(2.0);
+        blackShadow.setColor(Color.BLACK); // Set shadow color and transparency
 
-            // Header row
-            String[] headers = { "Student Name", "Identity", "Gender", "Class", "Term", "Book Titles", "Authors", "Status" };
-            Row header = sheet.createRow(0);
-            for (int i = 0; i < headers.length; i++) {
-                header.createCell(i).setCellValue(headers[i]);
-            }
 
-            // Data rows
-            int rowIndex = 1;
-            while (rs.next()) {
-                Row row = sheet.createRow(rowIndex++);
-                row.createCell(0).setCellValue(rs.getString("studentName"));
-                row.createCell(1).setCellValue(rs.getString("identity"));
-                row.createCell(2).setCellValue(rs.getString("gender"));
-                row.createCell(3).setCellValue(rs.getString("class"));
-                row.createCell(4).setCellValue(rs.getString("term"));
-                row.createCell(5).setCellValue(rs.getString("booktitles"));
-                row.createCell(6).setCellValue(rs.getString("authors"));
-                row.createCell(7).setCellValue("Cleared");
-            }
 
-            try (FileOutputStream out = new FileOutputStream(selectedFile)) {
-                workbook.write(out);
-            }
+        VBox box = new VBox(12);
+        box.setPadding(new Insets(20));
+        box.setAlignment(Pos.TOP_LEFT);
+        box.getStyleClass().add("settings-section");
 
-            // Delete cleared records after export
-            if (db.removeClearedRecords()) {
-                new Alert(Alert.AlertType.INFORMATION,"✅ Cleared records exported and deleted.\nSaved to:\n" + selectedFile.getAbsolutePath());
+        Label heading = new Label("🔓 Trial Activation");
+        heading.getStyleClass().add("section-heading");
 
-            } else {
-                new Alert(Alert.AlertType.INFORMATION,"✅ Cleared records not deleted");
-            }
+        Label status = new Label();
+        status.setWrapText(true);
+        status.getStyleClass().add("info-text");
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            new Alert(Alert.AlertType.INFORMATION,"✅Export failed");
-
+        if (db.isActivated()) {
+            status.setText("✅ Your Libra trial is activated.");
+        } else {
+            int daysLeft = TrialManager.getRemainingDays();
+            status.setText("⏳ Trial active — " + daysLeft + " day" + (daysLeft == 1 ? "" : "s") + " remaining.");
         }
+
+        TextField keyField = new TextField();
+        keyField.setPromptText("Enter activation code");
+        keyField.getStyleClass().add("recovery-input");
+        keyField.setPrefWidth(250);
+
+        Button activateBtn = new Button("Activate");
+        activateBtn.getStyleClass().add("settings-button");
+        activateBtn.setCursor(Cursor.HAND);
+        activateBtn.setOnMouseEntered(event -> {
+            activateBtn.setScaleX(1.1);
+            activateBtn.setEffect(blueShadow);
+        });
+        activateBtn.setOnMouseExited(event -> {
+            activateBtn.setScaleX(1.0);
+            activateBtn.setEffect(blackShadow);
+        });
+        ScaleTransition pressExport = new ScaleTransition(Duration.millis(80), activateBtn);
+        pressExport.setToX(0.95);
+        pressExport.setToY(0.95);
+
+        ScaleTransition releaseExport = new ScaleTransition(Duration.millis(80), activateBtn);
+        releaseExport.setToX(1.0);
+        releaseExport.setToY(1.0);
+
+        activateBtn.setOnMousePressed(e -> pressExport.play());
+        activateBtn.setOnMouseReleased(e -> releaseExport.play());
+
+
+
+
+        activateBtn.setOnAction(e -> {
+            String code = keyField.getText().trim();
+            if (!code.isEmpty()) {
+                if (db.isValidKey(code)) {
+                    db.markAsActivated();
+                    status.setText("✅ Activation successful! Thank you.");
+                    NotificationUtil.showSystemTrayMessage("Libra Activated", "Your trial has been successfully activated.");
+                } else {
+                    status.setText("❌ Activation failed. Please check your code.");
+                }
+            } else {
+                status.setText("⚠️ Please enter a valid activation code.");
+            }
+        });
+
+        // Submit on Enter key
+        keyField.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                activateBtn.fire();
+            }
+        });
+
+        HBox activationLine = new HBox(10, keyField, activateBtn);
+        activationLine.setAlignment(Pos.CENTER_LEFT);
+
+        box.getChildren().addAll(heading, status, activationLine);
+
+
+        this.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
+        this.getStylesheets().add(getClass().getResource("/recovery.css").toExternalForm());
+
+        return box;
     }
 
 

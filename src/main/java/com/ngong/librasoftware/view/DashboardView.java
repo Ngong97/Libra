@@ -298,6 +298,8 @@ private void showBookHoverPopup(MouseEvent event, String bookTitle) {
     String description = db.getShortDescription(bookTitle);
     String imagePath = db.getCoverImagePath(bookTitle);
 
+
+
     Image coverImage;
     try {
         coverImage = UIUtils.loadExternalImage(imagePath);

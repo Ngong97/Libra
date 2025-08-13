@@ -4,6 +4,7 @@ import com.ngong.librasoftware.DAO.DatabaseService;
 import com.ngong.librasoftware.model.CheckInEntry;
 import com.ngong.librasoftware.model.StudentRecord;
 import com.ngong.librasoftware.utils.UIUtils;
+import javafx.animation.ScaleTransition;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -11,22 +12,30 @@ import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
-import java.util.List;
 import java.util.function.UnaryOperator;
 
 public class EditStudentPopup extends Stage {
+    private final Pane contentArea;
 
-    public EditStudentPopup(StudentRecord student, Runnable onUpdate) {
+
+
+    public EditStudentPopup(StudentRecord student, Runnable onUpdate, Pane contentArea1) {
+        this.contentArea = contentArea1;
         setTitle("Edit Student");
         UIUtils.applyAppIcon(this);
+        this.initOwner(contentArea.getScene().getWindow());
+
         DatabaseService db = new DatabaseService();
 
         // Student Info
@@ -247,40 +256,60 @@ public class EditStudentPopup extends Stage {
             }
         });
 
+        DropShadow blackShadow = new DropShadow();
+        blackShadow.setOffsetY(2.0);
+        blackShadow.setColor(javafx.scene.paint.Color.BLACK);
+
+        DropShadow blueShadow = new DropShadow();
+        blueShadow.setOffsetY(2.0);
+        blueShadow.setColor(Color.BLUE); // Set shadow color and transparency
+
+
+        updateBook.setEffect(blackShadow);
         updateBook.setOnMouseEntered(event -> {
             updateBook.setScaleX(1.1);
-            updateBook.setStyle("-fx-background-color: #4b4e53;-fx-text-fill: #fdfcfc;-fx-font-weight: bold;-fx-font-size: 13px;-fx-background-radius: 6;-fx-border-radius: 6;-fx-border-color: transparent;");
+            updateBook.setEffect(blueShadow);
         });
-
         updateBook.setOnMouseExited(event -> {
             updateBook.setScaleX(1.0);
-            updateBook.setStyle("-fx-background-color: #c6cfdc;-fx-text-fill: #090909;-fx-font-weight: bold;-fx-font-size: 13px;-fx-background-radius: 6;-fx-border-radius: 6;-fx-border-color: transparent;");
+            updateBook.setEffect(blackShadow);
         });
+        ScaleTransition pressUpdate = new ScaleTransition(Duration.millis(80), updateBook);
+        pressUpdate.setToX(0.95);
+        pressUpdate.setToY(0.95);
 
-        Button removeBook = new Button("🗑️ Remove");
-        removeBook.setCursor(Cursor.HAND);
-        removeBook.setStyle("-fx-background-color: #c6cfdc;-fx-text-fill: #090909;-fx-font-weight: bold;-fx-font-size: 13px;-fx-background-radius: 6;-fx-border-radius: 6;-fx-border-color: transparent;");
-        removeBook.setOnAction(e -> {
-            var sel = bookList.getSelectionModel().getSelectedItem();
-            if (sel != null) {
-                db.clearReturnedBooks(List.of(sel.getBorrowingId()));
-                books.remove(sel);
-            }
-        });
+        ScaleTransition releaseUpdate = new ScaleTransition(Duration.millis(80), updateBook);
+        releaseUpdate.setToX(1.0);
+        releaseUpdate.setToY(1.0);
 
-        removeBook.setOnMouseEntered(event -> {
-            removeBook.setScaleX(1.1);
-            removeBook.setStyle("-fx-background-color: #4b4e53;-fx-text-fill: #fdfcfc;-fx-font-weight: bold;-fx-font-size: 13px;-fx-background-radius: 6;-fx-border-radius: 6;-fx-border-color: transparent;");
-        });
-
-        removeBook.setOnMouseExited(event -> {
-            removeBook.setScaleX(1.0);
-            removeBook.setStyle("-fx-background-color: #c6cfdc;-fx-text-fill: #090909;-fx-font-weight: bold;-fx-font-size: 13px;-fx-background-radius: 6;-fx-border-radius: 6;-fx-border-color: transparent;");
-        });
+        updateBook.setOnMousePressed(e -> pressUpdate.play());
+        updateBook.setOnMouseReleased(e -> releaseUpdate.play());
 
 
+//        Button removeBook = new Button("🗑️ Remove");
+//        removeBook.setCursor(Cursor.HAND);
+//        removeBook.setStyle("-fx-background-color: #c6cfdc;-fx-text-fill: #090909;-fx-font-weight: bold;-fx-font-size: 13px;-fx-background-radius: 6;-fx-border-radius: 6;-fx-border-color: transparent;");
+//        removeBook.setOnAction(e -> {
+//            var sel = bookList.getSelectionModel().getSelectedItem();
+//            if (sel != null) {
+//                db.clearReturnedBooks(List.of(sel.getBorrowingId()));
+//                books.remove(sel);
+//            }
+//        });
+//
+//        removeBook.setOnMouseEntered(event -> {
+//            removeBook.setScaleX(1.1);
+//            removeBook.setStyle("-fx-background-color: #4b4e53;-fx-text-fill: #fdfcfc;-fx-font-weight: bold;-fx-font-size: 13px;-fx-background-radius: 6;-fx-border-radius: 6;-fx-border-color: transparent;");
+//        });
+//
+//        removeBook.setOnMouseExited(event -> {
+//            removeBook.setScaleX(1.0);
+//            removeBook.setStyle("-fx-background-color: #c6cfdc;-fx-text-fill: #090909;-fx-font-weight: bold;-fx-font-size: 13px;-fx-background-radius: 6;-fx-border-radius: 6;-fx-border-color: transparent;");
+//        });
+//
 
-        HBox bookButtons = new HBox(10, updateBook, removeBook);
+
+//        HBox bookButtons = new HBox(10, updateBook, removeBook);
 
         Label titleLabel= new Label("Title:");
         titleLabel.setStyle("-fx-font-weight: bold;");
@@ -293,7 +322,7 @@ public class EditStudentPopup extends Stage {
                 titleLabel, title,
                 authorLabel, author,
                 isbnLabel, isbn,
-                bookButtons
+                updateBook
         );
 
         VBox bookLayout = new VBox(10, bookList, new TitledPane("Edit Selected Book", bookEditor));

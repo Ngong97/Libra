@@ -28,7 +28,6 @@ public class NotificationUtil {
                 tray.add(trayIcon);
             } catch (Exception e) {
                 trayIcon = null;
-                System.err.println("Tray initialization failed: " + e.getMessage());
             }
         }
     }
@@ -38,7 +37,6 @@ public class NotificationUtil {
             trayIcon.displayMessage(title, message, TrayIcon.MessageType.INFO);
         } else {
             // 🆕 Logged fallback for analytics/debugging
-            System.out.println("[TrayFallback] " + title + ": " + message);
         }
     }
 

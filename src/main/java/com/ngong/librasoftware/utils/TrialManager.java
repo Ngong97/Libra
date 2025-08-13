@@ -9,7 +9,7 @@ import java.time.temporal.ChronoUnit;
 
 public class TrialManager {
 
-    private static final int TRIAL_DAYS = 1;
+    private static final int TRIAL_DAYS = 60;
     private static boolean notificationShownThisSession = false;
 
     static DatabaseService db=new DatabaseService();

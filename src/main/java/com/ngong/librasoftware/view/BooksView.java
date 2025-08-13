@@ -69,6 +69,7 @@ public class BooksView extends VBox {
     private List<String> originalLines = new ArrayList<>();
 
 
+    @SuppressWarnings("unchecked")
     public BooksView(Pane contentArea) {
         setupBookHoverPopup();
         this.setPadding(new Insets(20));
@@ -392,7 +393,6 @@ public class BooksView extends VBox {
         String author = db.getAuthorForBookFromBookDictionary(bookTitle);
         String description = db.getShortDescription(bookTitle);
         String imagePath = db.getCoverImagePath(bookTitle);
-
         Image coverImage;
         try {
             coverImage = UIUtils.loadExternalImage(imagePath);
@@ -494,7 +494,8 @@ public class BooksView extends VBox {
         Dialog<Void> dialog = new Dialog<>();
         dialog.setTitle("Add Selected Books to Inventory");
         dialog.getDialogPane().setPrefWidth(700);
-//        UIUtils.applyAppIcon(dialog);
+        dialog.initOwner(this.contentArea.getScene().getWindow());
+
 
 
         DropShadow blackShadow = new DropShadow();
@@ -615,7 +616,9 @@ public class BooksView extends VBox {
         dialog.getDialogPane().getButtonTypes().addAll(okButtonType, cancelButtonType);
 
         Node okButton = dialog.getDialogPane().lookupButton(okButtonType);
+        okButton.setCursor(Cursor.HAND);
         Node cancelButton = dialog.getDialogPane().lookupButton(cancelButtonType);
+        cancelButton.setCursor(Cursor.HAND);
         HBox buttonRow = new HBox(10, okButton, cancelButton);
         buttonRow.setAlignment(Pos.CENTER_RIGHT);
 
@@ -774,6 +777,7 @@ public class BooksView extends VBox {
         Dialog<Void> dialog = new Dialog<>();
         dialog.setTitle("Register New Books");
         dialog.getDialogPane().setPrefWidth(500);
+        dialog.initOwner(this.contentArea.getScene().getWindow());
 
 
 
@@ -935,7 +939,9 @@ public class BooksView extends VBox {
         dialog.getDialogPane().getButtonTypes().addAll(okButtonType, cancelButtonType);
 
         Node okButton = dialog.getDialogPane().lookupButton(okButtonType);
+        okButton.setCursor(Cursor.HAND);
         Node cancelButton = dialog.getDialogPane().lookupButton(cancelButtonType);
+        cancelButton.setCursor(Cursor.HAND);
 
         // Buttons row
         HBox buttonRow = new HBox(10, loadSamplesBtn,importBtn, okButton, cancelButton);
@@ -1037,6 +1043,11 @@ public class BooksView extends VBox {
     private void showBulkAddDialogFromBorrowings() {
         Dialog<Void> dialog = new Dialog<>();
         dialog.setTitle("Sync with Borrowed Books");
+        dialog.initOwner(this.contentArea.getScene().getWindow());
+
+//        Image icon = new Image(UIUtils.class.getResource("/images/books.png").toString());
+//        dialog.setGraphic(new ImageView(icon));
+
         dialog.getDialogPane().setPrefWidth(500);
 
         TextArea input = new TextArea();
@@ -1091,7 +1102,9 @@ public class BooksView extends VBox {
         dialog.getDialogPane().getButtonTypes().addAll(okButtonType, cancelButtonType);
 
         Node okButton = dialog.getDialogPane().lookupButton(okButtonType);
+        okButton.setCursor(Cursor.HAND);
         Node cancelButton = dialog.getDialogPane().lookupButton(cancelButtonType);
+        cancelButton.setCursor(Cursor.HAND);
         HBox buttonRow = new HBox(10, okButton, cancelButton);
         buttonRow.setAlignment(Pos.CENTER_RIGHT);
 
@@ -1191,45 +1204,6 @@ public class BooksView extends VBox {
     }
 
 
-
-    private void importFromFile(File file) {
-    Label feedback = new Label(); // Temporary feedback label
-    try {
-        String content = Files.readString(file.toPath());
-        List<BookEntry> entries = parseBookEntries(content, feedback);
-
-        if (entries.isEmpty()) {
-            Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("Import Failed");
-            alert.setHeaderText("No valid books found in file.");
-            alert.setContentText(feedback.getText());
-            alert.showAndWait();
-            return;
-        }
-
-        for (BookEntry entry : entries) {
-            db.addLibraryBookIfMissing(entry.title(), entry.author(), entry.quantity());
-        }
-
-        books.setAll(db.getAllLibraryBooksWithAvailability());
-
-        Alert success = new Alert(Alert.AlertType.INFORMATION);
-        success.setTitle("Import Complete");
-        success.setHeaderText(null);
-        success.setContentText("📘 " + entries.size() + " book(s) successfully added.");
-        success.showAndWait();
-
-        updateInventorySummary();
-
-    } catch (IOException e) {
-        e.printStackTrace();
-        Alert fail = new Alert(Alert.AlertType.ERROR);
-        fail.setTitle("Import Error");
-        fail.setHeaderText("Unable to read file");
-        fail.setContentText("An error occurred while reading the file:\n" + e.getMessage());
-        fail.showAndWait();
-    }
-}
 
     private List<BookEntry> parseBookEntries(String text, Label feedback) {
         List<BookEntry> entries = new ArrayList<>();

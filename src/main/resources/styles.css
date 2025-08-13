@@ -585,6 +585,7 @@
 .button:hover {
     -fx-background-color: #cfdcec;
     -fx-font-size: 14;
+    -fx-font-weight: bold;
 }
 
 .diff-button {
@@ -635,8 +636,6 @@
     -fx-wrap-text: true;
     -fx-font-family: Consolas;
 }
-
-
 
 
 .sync-label {
