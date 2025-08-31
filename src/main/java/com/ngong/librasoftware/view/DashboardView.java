@@ -259,6 +259,9 @@ public class DashboardView extends VBox {
         countUpTimeline.setCycleCount(Animation.INDEFINITE);
         countUpTimeline.play();
 
+
+        this.getStylesheets().add(getClass().getResource("/somestyles.css").toExternalForm());
+
         this.setAlignment(Pos.TOP_CENTER);
 
 

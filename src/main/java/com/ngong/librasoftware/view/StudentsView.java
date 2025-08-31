@@ -41,7 +41,6 @@ import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.*;
 import java.util.List;
 import java.util.function.Function;
@@ -208,12 +207,12 @@ public class StudentsView extends VBox {
             }
 
             clearSelectedStudents();
-            try {
-                db.saveClearedStudentRecords();
-                db.removeClearedRecords();
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
-            }
+//            try {
+////                db.saveClearedStudentRecords();
+////                db.removeClearedRecords();
+//            } catch (SQLException ex) {
+//                throw new RuntimeException(ex);
+//            }
             filterStudents(nameSearch,table);
         });
 
@@ -340,7 +339,16 @@ public class StudentsView extends VBox {
             }
         });
 
-        HBox leftActions = new HBox(10, undoClearanceBtn, checkIn,spacer,new Label(),save,copyTable,new Label(),new Label(),filteredNum,new Label(),selectFilteredCheckbox);
+        Hyperlink clearedStudents=new Hyperlink("Cleared Students");
+        clearedStudents.setOnAction(e -> {
+
+            contentArea.getChildren().setAll(new ClearedStudentsView(db.getClearedStudentRecords(),contentArea));
+
+        });
+
+
+
+        HBox leftActions = new HBox(10, undoClearanceBtn, checkIn,spacer,new Label(),save,copyTable,new Label(),new Label(),filteredNum,new Label(),selectFilteredCheckbox, clearedStudents);
         leftActions.setAlignment(Pos.CENTER_LEFT);
 
 
@@ -730,8 +738,8 @@ public class StudentsView extends VBox {
     private void buildTableColumns() {
         table.getColumns().addAll(
                 createColumn("S/N", StudentRecord::serialNumberProperty, 40),
-                createColumn("Name", StudentRecord::nameProperty, 270),
-                createColumn("Gender", StudentRecord::genderProperty, 100),
+                createColumn("Name", StudentRecord::nameProperty, 220),
+                createColumn("Gender", StudentRecord::genderProperty, 90),
                 createColumn("ID", StudentRecord::studentIdentityProperty, 100),
                 createColumn("Class", StudentRecord::studentClassProperty, 110),
                 createColumn("Book Titles", StudentRecord::bookTitlesProperty, 280),

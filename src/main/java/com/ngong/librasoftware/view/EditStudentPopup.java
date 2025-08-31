@@ -236,7 +236,7 @@ public class EditStudentPopup extends Stage {
             }
         });
 
-        Button updateBook = new Button("✏️ Update");
+        Button updateBook = new Button("Update");
         updateBook.setStyle("-fx-background-color: #c6cfdc;-fx-text-fill: #090909;-fx-font-weight: bold;-fx-font-size: 13px;-fx-background-radius: 6;-fx-border-radius: 6;-fx-border-color: transparent;");
         updateBook.setCursor(Cursor.HAND);
         updateBook.setOnAction(e -> {

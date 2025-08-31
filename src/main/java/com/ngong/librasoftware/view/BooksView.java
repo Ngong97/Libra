@@ -77,6 +77,7 @@ public class BooksView extends VBox {
         this.getStyleClass().add("books");
         this.contentArea = contentArea;
 
+
         DropShadow blueShadow = new DropShadow();
         blueShadow.setOffsetY(2.0);
         blueShadow.setColor(Color.BLUE); // Set shadow color and transparency

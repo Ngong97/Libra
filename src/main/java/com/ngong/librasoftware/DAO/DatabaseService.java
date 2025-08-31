@@ -740,18 +740,17 @@ public void issueBookToStudent(String identity, String name, String gender, Stri
 
         if (bookId != -1) {
             PreparedStatement borrow = conn.prepareStatement("""
-                INSERT INTO borrowings (student_id, book_id, borrow_date, term, quantity, duration, return_date, returned)
-                VALUES (?, ?, date('now'), ?, ?, ?, date('now', '+' || ? || ' days'), 0)
+                INSERT INTO borrowings (student_id, book_id, borrow_date, term, quantity,quantity_borrowed, duration, return_date, returned)
+                VALUES (?, ?, date('now'), ?, ?, ?, ?, date('now', '+' || ? || ' days'), 0)
             """);
-
-
 
             borrow.setInt(1, studentId);
             borrow.setInt(2, bookId);
             borrow.setString(3, term);
             borrow.setInt(4, book.quantity);
-            borrow.setInt(5, Integer.parseInt(book.duration));
+            borrow.setInt(5, book.quantity);
             borrow.setInt(6, Integer.parseInt(book.duration));
+            borrow.setInt(7, Integer.parseInt(book.duration));
             borrow.executeUpdate();
 
             PreparedStatement log = conn.prepareStatement("""
@@ -2371,26 +2370,6 @@ public String generateFallbackIsbn(String title, String author) {
         return "A general educational book useful for academic reference.";
     }
 
-    public ResultSet getClearedStudentRecords() throws SQLException {
-        String query = """
-        SELECT
-            s.name AS studentName,
-            s.identity,
-            s.gender,
-            s.student_class AS class,
-            br.term,
-            GROUP_CONCAT(bk.title, ', ') AS booktitles,
-            GROUP_CONCAT(bk.author, ', ') AS authors
-        FROM students s
-        JOIN borrowings br ON br.student_id = s.student_id
-        JOIN books bk ON br.book_id = bk.book_id
-        WHERE br.returned = 1
-        GROUP BY s.student_id, br.term
-        """;
-        Connection conn=DriverManager.getConnection(DB_URL);
-        PreparedStatement stmt = conn.prepareStatement(query); // connection is your DB handle
-        return stmt.executeQuery();
-    }
 
 
 
@@ -2559,46 +2538,65 @@ public String generateFallbackIsbn(String title, String author) {
         return "LIBRA-2025-KEY".equals(key);
     }
 
-    public void saveClearedStudentRecords() throws SQLException {
-        String selectQuery = """
-        SELECT
-            s.name AS studentName,
-            s.identity,
-            s.gender,
-            s.student_class AS class,
-            br.term,
-            GROUP_CONCAT(bk.title, ', ') AS booktitles,
-            GROUP_CONCAT(bk.author, ', ') AS authors
-        FROM students s
-        JOIN borrowings br ON br.student_id = s.student_id
-        JOIN books bk ON br.book_id = bk.book_id
-        WHERE br.returned = 1
-        GROUP BY s.student_id, br.term
-        """;
 
-        String insertQuery = """
-        INSERT INTO cleared_students (
-            student_name, identity, gender, class, term, book_titles, authors
-        ) VALUES (?, ?, ?, ?, ?, ?, ?)
-        """;
+    public List<StudentRecord> getClearedStudentRecords() {
+        List<StudentRecord> list = new ArrayList<>();
+        String sql = """
+    SELECT
+        s.student_id,
+        s.identity,
+        s.name,
+        s.gender,
+        s.student_class,
+        COALESCE(MAX(br.term), '—') AS term,
+        COALESCE(MIN(br.borrow_date), '—') AS borrow_date,
+        COALESCE(MAX(br.return_date), '—') AS return_date,
+        COALESCE(GROUP_CONCAT(
+            CASE
+                WHEN br.quantity_borrowed > 1 THEN b.title || ' (' || br.quantity_borrowed || ' copies)'
+                ELSE b.title
+            END,
+            ', '
+        ), '—') AS book_titles,
+        COALESCE(GROUP_CONCAT(DISTINCT b.author), '—') AS authors,
+        COALESCE(GROUP_CONCAT(DISTINCT b.isbn), '—') AS isbns,
+        'Cleared' AS status
+    FROM students s
+    JOIN borrowings br ON br.student_id = s.student_id
+    JOIN books b ON br.book_id = b.book_id
+    WHERE br.returned = 1
+    GROUP BY s.student_id, br.term
+    ORDER BY s.name
+    """;
 
-        try (
-                Connection conn = DriverManager.getConnection(DB_URL);
-                PreparedStatement selectStmt = conn.prepareStatement(selectQuery);
-                ResultSet rs = selectStmt.executeQuery();
-                PreparedStatement insertStmt = conn.prepareStatement(insertQuery)
-        ) {
+
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            int sn = 1;
             while (rs.next()) {
-                insertStmt.setString(1, rs.getString("studentName"));
-                insertStmt.setString(2, rs.getString("identity"));
-                insertStmt.setString(3, rs.getString("gender"));
-                insertStmt.setString(4, rs.getString("class"));
-                insertStmt.setString(5, rs.getString("term"));
-                insertStmt.setString(6, rs.getString("booktitles"));
-                insertStmt.setString(7, rs.getString("authors"));
-                insertStmt.executeUpdate();
+                list.add(new StudentRecord(
+                        sn++,
+                        rs.getString("name"),
+                        rs.getString("identity"),
+                        rs.getInt("student_id"),
+                        rs.getString("gender"),
+                        rs.getString("student_class"),
+                        rs.getString("term"),
+                        rs.getString("book_titles"),
+                        rs.getString("authors"),
+                        rs.getString("isbns"),
+                        rs.getString("status"),
+                        rs.getString("borrow_date"),
+                        rs.getString("return_date")
+                ));
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+
+        return list;
     }
 
 }

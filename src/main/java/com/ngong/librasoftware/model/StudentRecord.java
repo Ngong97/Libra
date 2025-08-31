@@ -6,7 +6,7 @@ import javafx.beans.property.StringProperty;
 
 public class StudentRecord {
     private final StringProperty serialNumber;
-    private final StringProperty name;
+    public final StringProperty name;
     private final StringProperty identity;
     private final StringProperty studentId;
     private final StringProperty gender;

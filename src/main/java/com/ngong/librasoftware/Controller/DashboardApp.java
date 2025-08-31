@@ -47,15 +47,21 @@ public class DashboardApp extends Application {
         contentArea = new StackPane();
         BorderPane root = new BorderPane();
         root.setCenter(contentArea);
-        contentArea.getChildren().setAll(new DashboardView(contentArea));
+        contentArea.getChildren().setAll(new DashboardView2(contentArea));
 
-
+//        db.removeClearedRecords();
 
         if (!db.hasFirstLaunchDate()) {
             db.setFirstLaunchDate(LocalDate.now()); // Record initial use
         }
 
         //logging ...........
+
+
+
+
+
+
 
         Button toggleBtn = new Button("☰");
         toggleBtn.getStyleClass().add("toggle-button");
@@ -86,7 +92,7 @@ public class DashboardApp extends Application {
         });
 
         dashboardBtn.setOnAction(e -> {
-            contentArea.getChildren().setAll(new DashboardView(contentArea));
+            contentArea.getChildren().setAll(new DashboardView2(contentArea));
             setSelectedNav(dashboardBtn, navButtons);
         });
 
@@ -134,17 +140,94 @@ public class DashboardApp extends Application {
                 return;
             }
             // Step 1: Prompt for password
-            TextInputDialog passwordDialog = new TextInputDialog();
-            passwordDialog.setTitle("Authentication Required");
-            passwordDialog.setHeaderText("Enter your password to access settings");
-            passwordDialog.setContentText("Password:");
+//            TextInputDialog passwordDialog = new TextInputDialog();
+//            passwordDialog.setTitle("Authentication");
+//            passwordDialog.setHeaderText("Enter your password to access settings");
+//            passwordDialog.setContentText("Password:");
+//
+//            Optional<String> passwordInput = passwordDialog.showAndWait();
+//            if (passwordInput.isEmpty()) return; // Cancelled
+//
+//            String password = passwordInput.get().trim();
+//
+//            // Step 2: Verify password via your DatabaseService
+//            if (db.isValidPassword(password)) {
+//                contentArea.getChildren().setAll(new SettingsView());
+//                setSelectedNav(settingsBtn, navButtons);
+//            } else {
+//                WarningMessage msg = new WarningMessage(
+//                        "Incorrect password. Access denied.",
+//                        Duration.seconds(3),
+//                        contentArea
+//                );
+//                contentArea.getChildren().add(msg);
+//            }
 
+
+            // Create a custom dialog
+            Dialog<String> passwordDialog = new Dialog<>();
+            passwordDialog.setTitle("UI lock password");
+            passwordDialog.setHeaderText(null);
+            passwordDialog.setGraphic(null);
+
+// Create the password field
+            PasswordField passwordField = new PasswordField();
+            passwordField.setPromptText("••••••••");
+
+// Create the label
+            Label promptLabel = new Label("Please type the UI lock password:");
+            promptLabel.setAlignment(Pos.CENTER);
+
+// Create OK and Cancel buttons
+            ButtonType okButtonType = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+            ButtonType cancelButtonType = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+            passwordDialog.getDialogPane().getButtonTypes().addAll(okButtonType, cancelButtonType);
+
+// Layout: vertical stack with centered alignment
+            VBox contentBox = new VBox(5);
+            contentBox.setAlignment(Pos.CENTER);
+            contentBox.getChildren().addAll(promptLabel, passwordField);
+
+// Replace default content with custom layout
+            passwordDialog.getDialogPane().setContent(contentBox);
+
+
+// Apply layout to dialog
+            DialogPane dialogPane = passwordDialog.getDialogPane();
+            dialogPane.setContent(contentBox);
+
+// 🎯 Apply rounded corners and styling
+            dialogPane.setStyle("""
+    -fx-background-color: #f4f4f4;
+    -fx-border-radius: 15;
+    -fx-background-radius: 12;
+    -fx-padding: 10;
+""");
+
+
+
+// Center the buttons manually
+            Node okButton = passwordDialog.getDialogPane().lookupButton(okButtonType);
+            Node cancelButton = passwordDialog.getDialogPane().lookupButton(cancelButtonType);
+            HBox buttonBox = new HBox(20, okButton, cancelButton);
+            buttonBox.setAlignment(Pos.CENTER);
+            contentBox.getChildren().add(buttonBox);
+
+// Result converter to capture input
+            passwordDialog.setResultConverter(dialogButton -> {
+                if (dialogButton == okButtonType) {
+                    return passwordField.getText().trim();
+                }
+                return null;
+            });
+
+// Show dialog and handle result
             Optional<String> passwordInput = passwordDialog.showAndWait();
-            if (passwordInput.isEmpty()) return; // Cancelled
+            if (passwordInput.isEmpty()) return;
 
-            String password = passwordInput.get().trim();
+            String password = passwordInput.get();
 
-            // Step 2: Verify password via your DatabaseService
+// Step 2: Verify password via your DatabaseService
             if (db.isValidPassword(password)) {
                 contentArea.getChildren().setAll(new SettingsView());
                 setSelectedNav(settingsBtn, navButtons);
@@ -156,6 +239,10 @@ public class DashboardApp extends Application {
                 );
                 contentArea.getChildren().add(msg);
             }
+
+
+
+
         });
         aboutBtn.setOnAction(e -> {
             contentArea.getChildren().setAll(new AboutView());
@@ -163,10 +250,26 @@ public class DashboardApp extends Application {
         });
 
         logout.setOnAction(e -> {
-            primaryStage.close();
-            Stage registerstage=new Stage();
-            LoginWindow loginWindow = new LoginWindow();
-            loginWindow.start(registerstage);
+            // Create custom buttons
+            ButtonType yesButton = new ButtonType("Yes", ButtonBar.ButtonData.YES);
+            ButtonType noButton = new ButtonType("No", ButtonBar.ButtonData.NO);
+
+            // Create the confirmation alert
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION,
+                    "Are you sure you want to logout?",
+                    yesButton, noButton);
+            alert.setTitle("Exit?");
+            alert.setHeaderText(null); // removes default header
+
+            // Show and wait for user response
+            Optional<ButtonType> result = alert.showAndWait();
+
+            if (result.isPresent() && result.get() == yesButton) {
+                primaryStage.close();
+                Stage registerstage=new Stage();
+                LoginWindow loginWindow = new LoginWindow();
+                loginWindow.start(registerstage);
+            }
         });
 
         setSelectedNav(dashboardBtn, navButtons); // ensures CSS class is synced
