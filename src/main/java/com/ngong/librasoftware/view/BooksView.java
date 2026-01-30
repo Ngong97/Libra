@@ -25,6 +25,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 import javafx.stage.FileChooser;
 import javafx.stage.Popup;
 import javafx.stage.Screen;
@@ -89,7 +90,7 @@ public class BooksView extends VBox {
 
 
         Label title = new Label("📚 Library Inventory");
-        title.getStyleClass().add("section-title");
+        title.setFont(new Font("Matura MT Script Capitals", 20));
 
         TextField search = new TextField();
         search.setPromptText("Search by title or author...");
@@ -110,7 +111,7 @@ public class BooksView extends VBox {
 
         TableColumn<Book, String> serialNumCol = new TableColumn<>("S/N");
         serialNumCol.setCellValueFactory(new PropertyValueFactory<>("serialNum"));
-        serialNumCol.setMaxWidth(50);
+        serialNumCol.setMaxWidth(40);
         TableColumn<Book, String> titleCol = new TableColumn<>("Title");
         titleCol.setCellValueFactory(new PropertyValueFactory<>("title"));
         titleCol.setMaxWidth(400);
@@ -333,7 +334,7 @@ public class BooksView extends VBox {
         HBox summaryBox = createInventorySummaryBox();
 
 //        ImageView searchIcon = new ImageView(new Image(getClass().getResource("/images/search.png").toExternalForm()));
-        ImageView searchIcon = UIUtils.loadExternalImageView("/images/search.png",30,30);
+        ImageView searchIcon = UIUtils.loadExternalImageView("/images/search.png",16,16);
 
 
         // Wrap them in a styled container
@@ -504,7 +505,7 @@ public class BooksView extends VBox {
         blackShadow.setColor(Color.BLACK);
         // TextArea for entries
         TextArea input = new TextArea();
-        input.setStyle("-fx-font-size: 16; -fx-line-spacing: 8;");
+        input.setStyle("-fx-font-size: 16; -fx-line-spacing: 8;-fx-prompt-text-fill: #888");
         input.setPromptText("e.g.\nThings Fall Apart - Chinua Achebe = 5");
         
 // Per-textarea counter (cycles through 0 → 1 → 2)
@@ -752,6 +753,7 @@ public class BooksView extends VBox {
         confirm.setTitle("Confirm Deletion");
         confirm.setHeaderText("Are you sure you want to delete the selected books?");
         confirm.setContentText(bookList);
+        confirm.initOwner(contentArea.getScene().getWindow());
 
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
@@ -789,7 +791,7 @@ public class BooksView extends VBox {
 
         // Text input area
         TextArea input = new TextArea();
-        input.setStyle("-fx-font-size: 16;-fx-line-spacing: 8;");
+        input.setStyle("-fx-font-size: 16;-fx-line-spacing: 8;-fx-prompt-text-fill: #888");
         input.setPromptText("e.g.\nThings Fall Apart - Chinua Achebe = 5\nAtomic Habits - James Clear = 3");
 
         IntegerProperty shiftF3Cycle = new SimpleIntegerProperty(0);
@@ -1052,7 +1054,7 @@ public class BooksView extends VBox {
         dialog.getDialogPane().setPrefWidth(500);
 
         TextArea input = new TextArea();
-        input.setStyle("-fx-font-size: 16;-fx-line-spacing: 8;");
+        input.setStyle("-fx-font-size: 16;-fx-line-spacing: 8;-fx-prompt-text-fill: #888");
         input.setPromptText("e.g.\nThings Fall Apart - Chinua Achebe = 5");
 
         IntegerProperty shiftF3Cycle = new SimpleIntegerProperty(0);

@@ -35,6 +35,9 @@ public class LoginWindow extends Application {
     @Override
     public void start(Stage primaryStage) {
         UIUtils.applyAppIcon(primaryStage);
+
+//        this.initModality(Modality.APPLICATION_MODAL);
+
         Label titleLabel = new Label("Sign in to access Dashboard");
         titleLabel.setFont(new Font("Arial", 24));
         titleLabel.setTextFill(Color.web("#333333"));
@@ -124,7 +127,10 @@ public class LoginWindow extends Application {
                     alert.setTitle("Information");
                     alert.setHeaderText(null);
                     alert.setContentText("Incorrect credentials. Attempt " + failedAttempts + " of 5.");
+
+                    alert.initOwner(primaryStage);
                     alert.showAndWait();
+
                     failedAttempts+=1;
                     if (failedAttempts >= 2) {
                         forgotPasswordLink.setVisible(true);
@@ -168,7 +174,7 @@ public class LoginWindow extends Application {
 
 
         // Main scene
-        Scene scene = new Scene(formLayout, 550, 580);
+        Scene scene = new Scene(formLayout, 350, 350);
         scene.getStylesheets().add(getClass().getResource("/recovery.css").toExternalForm());
 
         primaryStage.setScene(scene);

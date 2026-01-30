@@ -15,19 +15,35 @@
     </properties>
 
     <dependencies>
-        <!-- PDFBox -->
-<!--        <dependency>-->
-<!--            <groupId>org.apache.pdfbox</groupId>-->
-<!--            <artifactId>pdfbox</artifactId>-->
-<!--            <version>2.0.29</version>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>2.0.9</version> <!-- or latest stable -->
+        </dependency>
 
-        <!-- EPUBlib -->
-<!--        <dependency>-->
-<!--            <groupId>nl.siegmann.epublib</groupId>-->
-<!--            <artifactId>epublib-core</artifactId>-->
-<!--            <version>3.1</version>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.10.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.sarxos</groupId>
+            <artifactId>webcam-capture</artifactId>
+            <version>0.3.12</version>
+        </dependency>
+
+        <!-- ZXing for QR/barcode decoding -->
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>core</artifactId>
+            <version>3.5.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>javase</artifactId>
+            <version>3.5.2</version>
+        </dependency>
 
         <dependency>
             <groupId>org.json</groupId>

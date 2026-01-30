@@ -237,7 +237,7 @@ public class EditStudentPopup extends Stage {
         });
 
         Button updateBook = new Button("Update");
-        updateBook.setStyle("-fx-background-color: #c6cfdc;-fx-text-fill: #090909;-fx-font-weight: bold;-fx-font-size: 13px;-fx-background-radius: 6;-fx-border-radius: 6;-fx-border-color: transparent;");
+        updateBook.setStyle("-fx-font-weight: bold;-fx-background-radius: 6;-fx-border-radius: 6;-fx-border-color: transparent;");
         updateBook.setCursor(Cursor.HAND);
         updateBook.setOnAction(e -> {
             var selected = bookList.getSelectionModel().getSelectedItem();
@@ -286,28 +286,6 @@ public class EditStudentPopup extends Stage {
         updateBook.setOnMouseReleased(e -> releaseUpdate.play());
 
 
-//        Button removeBook = new Button("🗑️ Remove");
-//        removeBook.setCursor(Cursor.HAND);
-//        removeBook.setStyle("-fx-background-color: #c6cfdc;-fx-text-fill: #090909;-fx-font-weight: bold;-fx-font-size: 13px;-fx-background-radius: 6;-fx-border-radius: 6;-fx-border-color: transparent;");
-//        removeBook.setOnAction(e -> {
-//            var sel = bookList.getSelectionModel().getSelectedItem();
-//            if (sel != null) {
-//                db.clearReturnedBooks(List.of(sel.getBorrowingId()));
-//                books.remove(sel);
-//            }
-//        });
-//
-//        removeBook.setOnMouseEntered(event -> {
-//            removeBook.setScaleX(1.1);
-//            removeBook.setStyle("-fx-background-color: #4b4e53;-fx-text-fill: #fdfcfc;-fx-font-weight: bold;-fx-font-size: 13px;-fx-background-radius: 6;-fx-border-radius: 6;-fx-border-color: transparent;");
-//        });
-//
-//        removeBook.setOnMouseExited(event -> {
-//            removeBook.setScaleX(1.0);
-//            removeBook.setStyle("-fx-background-color: #c6cfdc;-fx-text-fill: #090909;-fx-font-weight: bold;-fx-font-size: 13px;-fx-background-radius: 6;-fx-border-radius: 6;-fx-border-color: transparent;");
-//        });
-//
-
 
 //        HBox bookButtons = new HBox(10, updateBook, removeBook);
 
@@ -338,7 +316,7 @@ public class EditStudentPopup extends Stage {
         // Save Button
         Button save = new Button("💾 Save");
         save.setCursor(Cursor.HAND);
-        save.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;");
+        save.setStyle("-fx-background-color: #4c8caf; -fx-text-fill: white; -fx-font-weight: bold;-fx-font-size: 14");
         save.setMaxWidth(Double.MAX_VALUE);
         save.setOnAction(e -> {
             db.updateStudentDetails(

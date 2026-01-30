@@ -12,7 +12,6 @@ import javafx.stage.Stage;
 import java.net.URI;
 
 public class DocumentationViewer {
-
     public static void launchDocumentationWindow() {
         Stage stage = new Stage();
         stage.setTitle("Libra Inventory Documentation");

@@ -2,7 +2,6 @@ package com.ngong.librasoftware.view;
 
 
 import com.ngong.librasoftware.DAO.DatabaseService;
-import com.ngong.librasoftware.model.SnackbarForRegistration;
 import com.ngong.librasoftware.model.StudentRecord;
 import com.ngong.librasoftware.utils.AnimationUtils;
 import com.ngong.librasoftware.utils.UIUtils;
@@ -46,8 +45,7 @@ import java.util.List;
 import java.util.function.Function;
 
 public class StudentsView extends VBox {
-    StackPane root;
-    SnackbarForRegistration snackbar;
+
     private final Map<Integer, Map<Integer, Integer>> lastClearedStudents = new HashMap<>();
 
 
@@ -70,7 +68,7 @@ public class StudentsView extends VBox {
 
 
         TextField nameSearch = new TextField();
-        nameSearch.setPromptText("Search records...");
+        nameSearch.setPromptText("Type search criteria...");
         nameSearch.setMinWidth(300);
         nameSearch.getStyleClass().add("search-bar");
 
@@ -103,7 +101,7 @@ public class StudentsView extends VBox {
 
 
 //        ImageView undoIcon = new ImageView(new Image(getClass().getResource("/images/undo.png").toExternalForm()));
-        ImageView undoIcon = UIUtils.loadExternalImageView("/images/undo.png",35,30);
+        ImageView undoIcon = UIUtils.loadExternalImageView("/images/undo.png",25,20);
 
 
         Hyperlink undoClearanceBtn = new Hyperlink();
@@ -162,7 +160,7 @@ public class StudentsView extends VBox {
                 "-fx-font-size: 14;" +
                 "-fx-border-radius: 10");
 //        ImageView inIcon = new ImageView(new Image(getClass().getResource("/images/book-in2.png").toExternalForm()));
-        ImageView inIcon = UIUtils.loadExternalImageView("/images/book-in2.png",35,30);
+        ImageView inIcon = UIUtils.loadExternalImageView("/images/book-in2.png",25,20);
 
         Hyperlink checkIn = new Hyperlink();
         checkIn.setGraphic(inIcon);
@@ -170,9 +168,6 @@ public class StudentsView extends VBox {
         checkIn.getStyleClass().add("button");
         Tooltip checkinTooltip=new Tooltip("Receive a book from Student");
         Tooltip.install(checkIn, checkinTooltip);
-//        checkinTooltip.setText("Receive a book from Student");
-//        checkinTooltip.setStyle("-fx-");
-//        checkIn.setTooltip(checkinTooltip);
         checkIn.setEffect(blackShadow);
         checkIn.setOnMouseEntered(event -> {
             checkIn.setScaleX(1.1);
@@ -221,7 +216,7 @@ public class StudentsView extends VBox {
 
         Hyperlink save = new Hyperlink();
 //        ImageView download = new ImageView(new Image(getClass().getResource("/images/downloadIcon.png").toExternalForm()));
-        ImageView download = UIUtils.loadExternalImageView("/images/downloadIcon.png",35,30);
+        ImageView download = UIUtils.loadExternalImageView("/images/downloadIcon.png",25,20);
 
         save.setGraphic(download);
         save.setCursor(Cursor.HAND);
@@ -254,7 +249,8 @@ public class StudentsView extends VBox {
             fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel Workbook", ".xls"));
 
 
-            String defaultFileName = "Overdue Students";
+            String search_string=nameSearch.getText();
+            String defaultFileName = search_string+" Overdue Students";
             File defaultDir = new File(System.getProperty("user.home"), "Documents");
             fileChooser.setInitialDirectory(defaultDir.exists() ? defaultDir : new File(System.getProperty("user.home")));
             fileChooser.setInitialFileName(defaultFileName + ".xls");
@@ -284,7 +280,7 @@ public class StudentsView extends VBox {
         Hyperlink copyTable = new Hyperlink();
         copyTable.getStyleClass().add("button");
 //        ImageView copy = new ImageView(new Image(getClass().getResource("/images/copyIcon.png").toExternalForm()));
-        ImageView copy = UIUtils.loadExternalImageView("/images/copyIcon.png",35,30);
+        ImageView copy = UIUtils.loadExternalImageView("/images/copyIcon.png",25,20);
 
         copyTable.setGraphic(copy);
         copyTable.setCursor(Cursor.HAND);
@@ -339,7 +335,7 @@ public class StudentsView extends VBox {
             }
         });
 
-        Hyperlink clearedStudents=new Hyperlink("Cleared Students");
+        Hyperlink clearedStudents=new Hyperlink("Find Cleared Records");
         clearedStudents.setOnAction(e -> {
 
             contentArea.getChildren().setAll(new ClearedStudentsView(db.getClearedStudentRecords(),contentArea));
@@ -595,7 +591,6 @@ public class StudentsView extends VBox {
 
                 quantitySpinners.put(bookId, spinner);
                 selectionCheckboxes.put(bookId, selectBox);
-
                 row = new HBox(10, selectBox, spinner);
             } else {
                 selectionCheckboxes.put(bookId, selectBox);
@@ -740,12 +735,10 @@ public class StudentsView extends VBox {
                 createColumn("S/N", StudentRecord::serialNumberProperty, 40),
                 createColumn("Name", StudentRecord::nameProperty, 220),
                 createColumn("Gender", StudentRecord::genderProperty, 90),
-                createColumn("ID", StudentRecord::studentIdentityProperty, 100),
+                createColumn("ID No.", StudentRecord::studentIdentityProperty, 100),
                 createColumn("Class", StudentRecord::studentClassProperty, 110),
                 createColumn("Book Titles", StudentRecord::bookTitlesProperty, 280),
                 createColumn("Authors", StudentRecord::authorsProperty, 270),
-//                createColumn("Borrow Date", StudentRecord::borrowDateProperty, 60),
-//                createColumn("Return Date", StudentRecord::returnDateProperty, 60),
                 createColumn("Status", StudentRecord::statusProperty, 80)
         );
     }

@@ -3,6 +3,7 @@ package com.ngong.librasoftware.view;
 import com.ngong.librasoftware.DAO.DatabaseService;
 import com.ngong.librasoftware.model.ReportData;
 import com.ngong.librasoftware.service.ReportService;
+import com.ngong.librasoftware.utils.AnimationUtils;
 import javafx.animation.ScaleTransition;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
@@ -231,6 +232,7 @@ public class ReportView extends VBox {
                 pdfPreviewImage
         );
 
+        AnimationUtils.applyFadeIn(this, 600);
 
 
     }

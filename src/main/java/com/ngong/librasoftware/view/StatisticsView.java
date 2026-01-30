@@ -9,6 +9,7 @@ import javafx.geometry.Insets;
 import javafx.scene.chart.*;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
 
 import java.util.Map;
 
@@ -22,8 +23,10 @@ public class StatisticsView extends VBox {
         this.setSpacing(30);
         this.getStyleClass().add("statistics-view");
 
-        Label title = new Label("📊 Library Statistics Dashboard");
-        title.getStyleClass().add("statistics-header");
+        Label title = new Label("Library Statistics");
+        title.setFont(new Font("Matura MT Script Capitals", 20));
+
+//        title.getStyleClass().add("statistics-header");
 
         refreshCharts();
 

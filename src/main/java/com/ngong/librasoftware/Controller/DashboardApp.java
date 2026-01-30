@@ -47,7 +47,7 @@ public class DashboardApp extends Application {
         contentArea = new StackPane();
         BorderPane root = new BorderPane();
         root.setCenter(contentArea);
-        contentArea.getChildren().setAll(new DashboardView2(contentArea));
+        contentArea.getChildren().setAll(new DashboardView(contentArea));
 
 //        db.removeClearedRecords();
 
@@ -72,7 +72,7 @@ public class DashboardApp extends Application {
         dashboardBtn.getStyleClass().add("selected");
 
         Button booksBtn = createNavButton("Inventory", "/images/books.png");
-        Button studentsBtn = createNavButton("Students", "/images/reading.png");
+        Button studentsBtn = createNavButton("Overdue Records", "/images/reading.png");
         Button checkoutBtn = createNavButton("Hand book out", "/images/addstudent.png");
         Button statsBtn = createNavButton("Statistics", "/images/statistics.png");
         Button settingsBtn = createNavButton("Settings", "/images/setting.png");
@@ -92,7 +92,7 @@ public class DashboardApp extends Application {
         });
 
         dashboardBtn.setOnAction(e -> {
-            contentArea.getChildren().setAll(new DashboardView2(contentArea));
+            contentArea.getChildren().setAll(new DashboardView(contentArea));
             setSelectedNav(dashboardBtn, navButtons);
         });
 
@@ -139,36 +139,13 @@ public class DashboardApp extends Application {
                 promptForActivationKey();
                 return;
             }
-            // Step 1: Prompt for password
-//            TextInputDialog passwordDialog = new TextInputDialog();
-//            passwordDialog.setTitle("Authentication");
-//            passwordDialog.setHeaderText("Enter your password to access settings");
-//            passwordDialog.setContentText("Password:");
-//
-//            Optional<String> passwordInput = passwordDialog.showAndWait();
-//            if (passwordInput.isEmpty()) return; // Cancelled
-//
-//            String password = passwordInput.get().trim();
-//
-//            // Step 2: Verify password via your DatabaseService
-//            if (db.isValidPassword(password)) {
-//                contentArea.getChildren().setAll(new SettingsView());
-//                setSelectedNav(settingsBtn, navButtons);
-//            } else {
-//                WarningMessage msg = new WarningMessage(
-//                        "Incorrect password. Access denied.",
-//                        Duration.seconds(3),
-//                        contentArea
-//                );
-//                contentArea.getChildren().add(msg);
-//            }
-
 
             // Create a custom dialog
             Dialog<String> passwordDialog = new Dialog<>();
             passwordDialog.setTitle("UI lock password");
             passwordDialog.setHeaderText(null);
             passwordDialog.setGraphic(null);
+            passwordDialog.initOwner(primaryStage);
 
 // Create the password field
             PasswordField passwordField = new PasswordField();
@@ -260,6 +237,7 @@ public class DashboardApp extends Application {
                     yesButton, noButton);
             alert.setTitle("Exit?");
             alert.setHeaderText(null); // removes default header
+            alert.initOwner(primaryStage);
 
             // Show and wait for user response
             Optional<ButtonType> result = alert.showAndWait();

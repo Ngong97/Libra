@@ -393,7 +393,7 @@
     -fx-background-color: white;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 4, 0, 0, 1);
     -fx-prompt-text-fill: #888;
-    -fx-font-weight: bold;
+    /*-fx-font-weight: bold;*/
 
 }
 .search-bar:focused {
@@ -564,8 +564,8 @@
 
 .button {
 
-    -fx-background-radius: 10;
-    -fx-border-radius: 10;
+    -fx-background-radius: 7;
+    -fx-border-radius: 7;
 
 
 }

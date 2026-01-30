@@ -1,21 +1,34 @@
 package com.ngong.librasoftware.view;
 
-
+import com.github.sarxos.webcam.Webcam;
+import com.google.zxing.*;
+import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
+import com.google.zxing.common.HybridBinarizer;
 import com.ngong.librasoftware.DAO.DatabaseService;
 import com.ngong.librasoftware.model.BookInfo;
+import com.ngong.librasoftware.model.ScanBook;
 import com.ngong.librasoftware.model.SnackbarForRegistration;
+import com.ngong.librasoftware.model.Student;
 import com.ngong.librasoftware.utils.AnimationUtils;
 import com.ngong.librasoftware.utils.UIUtils;
 import com.ngong.librasoftware.utils.WarningMessage;
+import javafx.animation.Interpolator;
 import javafx.animation.ScaleTransition;
+import javafx.animation.TranslateTransition;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -23,12 +36,25 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+import javafx.stage.FileChooser;
+import javafx.stage.Modality;
 import javafx.stage.Popup;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.Dimension;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -67,6 +93,11 @@ public class CheckOutView extends HBox {
     private final VBox bookBox = new VBox(5);
 
 
+    TextField studentName;
+    TextField studentID ;
+    ComboBox<String> studentGender;
+    ComboBox<String> studentClass ;
+    ComboBox<String> termBox;
 
     public CheckOutView(Pane contentArea) {
 
@@ -150,12 +181,11 @@ public class CheckOutView extends HBox {
         studentForm.setPrefWidth(400);
 
 
-        ComboBox<String> studentGender = new ComboBox<>();
+        studentGender = new ComboBox<>();
 
 
 
-        TextField studentName = new TextField();
-//        studentName.setMinWidth(300);
+        studentName = new TextField();
         studentName.setPromptText("Full Name");
         studentName.getStyleClass().add("settings-textfield");
 
@@ -271,24 +301,6 @@ public class CheckOutView extends HBox {
             if (knownGender != null) {
                 studentGender.setValue(knownGender); // ✅ Autopopulate
             }
-
-
-//            boolean exists = db.doesStudentIdExistAndHasUncleared(newText.trim());
-//            if (exists) {
-//                studentName.setStyle(redBorder);
-//                WarningMessage msg = new WarningMessage(
-//                        "A student with same name has not cleared",
-//                        Duration.seconds(5),
-//                        contentArea // Your layout container
-//                );
-//
-//                contentArea.getChildren().add(msg);
-//                StackPane.setAlignment(msg, Pos.CENTER);
-//
-//            } else {
-//                studentName.setStyle(defaultBorderStyle);
-//            }
-
         });
 
 
@@ -329,7 +341,8 @@ public class CheckOutView extends HBox {
             }
         });
 
-        TextField studentID = new TextField();
+
+        studentID = new TextField();
         studentID.setPromptText("Student ID");
         studentID.getStyleClass().add("settings-textfield");
 
@@ -394,7 +407,7 @@ public class CheckOutView extends HBox {
 
 
 
-        ComboBox<String> studentClass = new ComboBox<>();
+        studentClass = new ComboBox<>();
         studentClass.getItems().addAll(db.getAllStudentClasses());
         studentClass.setPromptText("Class");
         studentClass.setEditable(true);
@@ -421,7 +434,7 @@ public class CheckOutView extends HBox {
 
 
 
-        ComboBox<String> termBox = new ComboBox<>();
+        termBox = new ComboBox<>();
         termBox.getItems().addAll(db.getAllStudentTerms());
         termBox.setPromptText("Term");
         termBox.getStyleClass().add("settings-combo");
@@ -883,17 +896,17 @@ public class CheckOutView extends HBox {
         });
 
 
-        Button addBook = new Button("➕ Add Book");
+        Button addBook = new Button("Add Book");
 //        addBook.getStyleClass().add("button-part");
         addBook.setCursor(Cursor.HAND);
         addBook.setEffect(blackShadow);
         addBook.setOnMouseEntered(event -> {
-            addBook.setScaleX(1.1);
+//            addBook.setScaleX(1.1);
 //            copyTable.setCursor(Cursor.HAND);
             addBook.setEffect(blueShadow);
         });
         addBook.setOnMouseExited(event -> {
-            addBook.setScaleX(1.0);
+//            addBook.setScaleX(1.0);
             addBook.setEffect(blackShadow);
         });
         ScaleTransition pressAdd = new ScaleTransition(Duration.millis(80), addBook);
@@ -1174,13 +1187,6 @@ public class CheckOutView extends HBox {
         });
         deleteBook.setDisable(true);
 
-        HBox buttonBar = new HBox(10, addBook,updateBook,deleteBook);
-
-        Label bookDetails=new Label("📚 Book(s) to Issue");
-        bookDetails.setStyle("-fx-font-weight: bold;-fx-font-size: 16px;");
-        bookForm.getChildren().addAll(
-                bookDetails, titleStack, author, quantityComboBox,isbn, duration, buttonBar, bookList
-        );
 
         // --- Submit button
 //        ImageView confirmIcon = new ImageView(new Image(getClass().getResource("/images/book-out.png").toExternalForm()));
@@ -1300,12 +1306,33 @@ public class CheckOutView extends HBox {
         VBox.setVgrow(bottomSpacer, Priority.ALWAYS);
 
 
+        Button scanStudentBtn = new Button("Scan Student");
+        scanStudentBtn.setOnAction(e -> openScannerWindow("student"));
+
+        Button scanBookBtn = new Button("Scan Book");
+        scanBookBtn.setOnAction(e -> openScannerWindow("book"));
+
+
+
+        HBox buttonBar = new HBox(10, addBook,updateBook,deleteBook,scanBookBtn);
+
+        Label bookDetails=new Label("📚 Book(s) to Issue");
+        bookDetails.setStyle("-fx-font-weight: bold;-fx-font-size: 16px;");
+        bookForm.getChildren().addAll(
+                bookDetails, titleStack, author, quantityComboBox,isbn, duration, buttonBar, bookList
+        );
+
+
+
+
 
         HBox confirmBox = new HBox(40, issueBooks, refresh,teacherCheckBox);
         confirmBox.setAlignment(Pos.CENTER_LEFT);
         confirmBox.setPadding(new Insets(10, 0, 0, 0));
 
-        VBox middleColumn = new VBox(20, topSpacer, confirmBox, bottomSpacer);
+
+
+        VBox middleColumn = new VBox(20,scanStudentBtn, topSpacer, confirmBox, bottomSpacer);
         middleColumn.setAlignment(Pos.CENTER);
 
         formColumn.getChildren().addAll(topForm, middleColumn);
@@ -1353,6 +1380,333 @@ public class CheckOutView extends HBox {
 
 
     }
+
+    private void openScannerWindow(String type) {
+        Stage scannerStage = new Stage();
+        scannerStage.setTitle("Scan " + (type.equals("student") ? "Student QR" : "Book Barcode"));
+
+        VBox layout = new VBox(10);
+        layout.setPadding(new Insets(10));
+        layout.setAlignment(Pos.CENTER);
+
+        // Live camera feed placeholder
+        ImageView cameraView = new ImageView();
+        cameraView.setFitWidth(400);
+        cameraView.setFitHeight(300);
+        cameraView.setPreserveRatio(true);
+
+        // Start camera feed (you’ll need to integrate Webcam Capture or OpenCV here)
+        startLiveCamera(cameraView, type);
+
+        // File picker
+        Button selectImageBtn = new Button("Select Image from Computer");
+        selectImageBtn.setOnAction(e -> {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Choose Scanned Image");
+            File file = fileChooser.showOpenDialog(scannerStage);
+            if (file != null) {
+                try {
+                    javafx.scene.image.Image image = new javafx.scene.image.Image(new FileInputStream(file));
+                    ImageView qrImageView = new ImageView(image);
+                    qrImageView.setFitWidth(400);
+                    qrImageView.setFitHeight(300);
+                    qrImageView.setPreserveRatio(true);
+
+                    Rectangle scannerLine = new Rectangle(400, 2); // width, height
+                    scannerLine.setFill(Color.RED); // set color separately
+                    scannerLine.setOpacity(0.8);
+                    scannerLine.setTranslateY(-150);
+
+                    StackPane scanPane = new StackPane(qrImageView, scannerLine);
+                    layout.getChildren().set(0, scanPane);
+
+                    TranslateTransition scanAnim = new TranslateTransition(Duration.seconds(1.5), scannerLine);
+                    scanAnim.setFromY(-150);
+                    scanAnim.setToY(150);
+                    scanAnim.setCycleCount(1);
+                    scanAnim.setInterpolator(Interpolator.EASE_IN);
+                    scanAnim.setOnFinished(event -> {
+                        scanPane.getChildren().remove(scannerLine);
+                        decodeImage(file, type);
+                    });
+
+                    scanAnim.play();
+
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    showAlert("Error", "Failed to load image.");
+                }
+//                decodeImage(file, type);
+            }
+        });
+
+        layout.getChildren().addAll(cameraView, selectImageBtn);
+
+        Scene scene = new Scene(layout);
+        scannerStage.setScene(scene);
+        scannerStage.initModality(Modality.APPLICATION_MODAL);
+        scannerStage.show();
+    }
+
+    private void startLiveCamera(ImageView cameraView, String type) {
+        Webcam webcam = Webcam.getDefault();
+        webcam.setViewSize(new Dimension(640, 480));
+        webcam.open();
+
+        // Start a background thread for scanning
+        Thread scannerThread = new Thread(() -> {
+            while (!Thread.currentThread().isInterrupted()) {
+                BufferedImage image = webcam.getImage();
+                if (image != null) {
+                    Platform.runLater(() -> {
+                        cameraView.setImage(SwingFXUtils.toFXImage(image, null));
+                    });
+
+                    try {
+                        LuminanceSource source = new BufferedImageLuminanceSource(image);
+                        BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
+                        com.google.zxing.Result result = new MultiFormatReader().decode(bitmap);
+                                //MultiFormatReader().decode(bitmap);
+
+                        if (result != null) {
+                            String decodedText = result.getText();
+
+                            Platform.runLater(() -> {
+                                if (type.equals("student")) {
+                                    Student student = parseStudentQR(decodedText);
+                                    displayStudentDetails(student);
+                                } else {
+                                    ScanBook book = parseBookBarcode(decodedText);
+                                    addBookToBorrowList(book);
+                                }
+
+                                webcam.close();
+                                Stage stage = (Stage) cameraView.getScene().getWindow();
+                                stage.close();
+                            });
+
+                            break;
+                        }
+                    } catch (NotFoundException ignored) {
+                        // No code found in this frame
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                try {
+                    Thread.sleep(100); // scan every 100ms
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        });
+
+        scannerThread.setDaemon(true);
+        scannerThread.start();
+
+        // Ensure webcam closes when window is closed
+        cameraView.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene != null) {
+                newScene.windowProperty().addListener((obs2, oldWindow, newWindow) -> {
+                    if (newWindow != null) {
+                        ((Stage) newWindow).setOnCloseRequest(e -> {
+                            webcam.close();
+                            scannerThread.interrupt();
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    private void addBookToBorrowList(ScanBook book) {
+        String summary = book.title + " — " + book.author + " (" + book.quantity + " Copies)";
+        bookList.getItems().add(summary);
+    }
+
+
+    private void displayStudentDetails(Student student) {
+        studentName.setText(student.name);
+        studentID.setText(student.id);
+        studentGender.setValue(student.gender);
+        studentClass.setValue(student.studentClass);
+    }
+
+
+
+
+//    private Student parseStudentQR(String decodedText) {
+//        try {
+//            JsonElement element = JsonParser.parseString(decodedText);
+//            JsonObject json;
+//
+//            if (element.isJsonObject()) {
+//                json = element.getAsJsonObject();
+//            } else if (element.isJsonPrimitive()) {
+//                // It's a stringified JSON, parse again
+//                json = JsonParser.parseString(element.getAsString()).getAsJsonObject();
+//            } else {
+//                return new Student("", "", "", "");
+//            }
+//
+//            String name = json.has("name") ? json.get("name").getAsString() : "";
+//            String id = json.has("id") ? json.get("id").getAsString() : "";
+//            String gender = json.has("gender") ? json.get("gender").getAsString() : "";
+//            String studentClass = json.has("class") ? json.get("class").getAsString() : "";
+//
+//            return new Student(name, id, gender, studentClass);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return new Student("", "", "", "");
+//        }
+//    }
+
+//    private Student parseStudentQR(String decodedText) {
+//        try {
+//            JsonReader reader = new JsonReader(new StringReader(decodedText));
+//            reader.setLenient(true); // Accept non-standard JSON
+//
+//            JsonElement element = JsonParser.parseReader(reader);
+//            JsonObject json;
+//
+//            if (element.isJsonObject()) {
+//                json = element.getAsJsonObject();
+//            } else if (element.isJsonPrimitive()) {
+//                // It's a stringified JSON, parse again
+//                JsonReader nestedReader = new JsonReader(new StringReader(element.getAsString()));
+//                nestedReader.setLenient(true);
+//                json = JsonParser.parseReader(nestedReader).getAsJsonObject();
+//            } else {
+//                return new Student("", "", "", "");
+//            }
+//
+//            String name = json.has("name") ? json.get("name").getAsString() : "";
+//            String id = json.has("id") ? json.get("id").getAsString() : "";
+//            String gender = json.has("gender") ? json.get("gender").getAsString() : "";
+//            String studentClass = json.has("class") ? json.get("class").getAsString() : "";
+//
+//            return new Student(name, id, gender, studentClass);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return new Student("", "", "", "");
+//        }
+//    }
+
+    private Student parseStudentQR(String decodedText) {
+        String name = "";
+        String id = "";
+        String gender = "";
+        String studentClass = "";
+
+        try {
+            String[] lines = decodedText.split("\\r?\\n");
+            for (String line : lines) {
+                if (line.startsWith("Name:")) {
+                    name = line.substring("Name:".length()).trim();
+                } else if (line.startsWith("ID:")) {
+                    id = line.substring("ID:".length()).trim();
+                } else if (line.startsWith("Gender:")) {
+                    gender = line.substring("Gender:".length()).trim();
+                } else if (line.startsWith("Class:")) {
+                    studentClass = line.substring("Class:".length()).trim();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return new Student(name, id, gender, studentClass);
+    }
+
+
+
+    private void decodeImage(File imageFile, String type) {
+        try {
+            BufferedImage bufferedImage = ImageIO.read(imageFile);
+            if (bufferedImage == null) {
+                showAlert("Invalid Image", "The selected file is not a valid image.");
+                return;
+            }
+
+            LuminanceSource source = new BufferedImageLuminanceSource(bufferedImage);
+            BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
+
+            Map<DecodeHintType, Object> hints = new HashMap<>();
+            hints.put(DecodeHintType.POSSIBLE_FORMATS, Arrays.asList(
+                    BarcodeFormat.QR_CODE,
+                    BarcodeFormat.CODE_128,
+                    BarcodeFormat.EAN_13,
+                    BarcodeFormat.CODE_39
+            ));
+            hints.put(DecodeHintType.TRY_HARDER, Boolean.TRUE);
+
+            Result result = new MultiFormatReader().decode(bitmap, hints);
+
+            String decodedText = result.getText();
+            System.out.println("Decoded text: " + decodedText);
+
+            if (decodedText == null || decodedText.isBlank()) {
+                showAlert("Scan Failed", "No code detected in the image.");
+                return;
+            }
+
+            if (type.equalsIgnoreCase("student")) {
+                try {
+                    Student student = parseStudentQR(decodedText);
+                    displayStudentDetails(student);
+                    System.out.println(student);
+                    showAlert("Success", "Student details loaded successfully.");
+                } catch (Exception e) {
+                    showAlert("Invalid QR", "Failed to parse student QR code.");
+                }
+            } else if (type.equalsIgnoreCase("book")) {
+                try {
+                    ScanBook book = parseBookBarcode(decodedText);
+                    addBookToBorrowList(book);
+                    showAlert("Success", "Book details loaded successfully.");
+                } catch (Exception e) {
+                    showAlert("Invalid Barcode", "Failed to parse book barcode.");
+                }
+            } else {
+                showAlert("Unknown Type", "Unsupported scan type: " + type);
+            }
+
+        } catch (NotFoundException nf) {
+            showAlert("No Code Found", "No QR or barcode was detected in the image.");
+        } catch (IOException io) {
+            showAlert("Read Error", "Unable to read the selected image file.");
+        } catch (Exception e) {
+            showAlert("Unexpected Error", "Something went wrong while decoding the image.");
+            e.printStackTrace();
+        }
+    }
+
+    private ScanBook parseBookBarcode(String decodedText) {
+        try {
+            String[] parts = decodedText.split("\\|");
+            String title = parts.length > 0 ? parts[0] : "";
+            String author = parts.length > 1 ? parts[1] : "";
+            String isbn = parts.length > 2 ? parts[2] : "";
+            return new ScanBook(title, author, isbn);
+        } catch (Exception e) {
+            return new ScanBook("", "", "");
+        }
+    }
+
+
+
+    private void showAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null); // Optional: no header
+        alert.setContentText(message);
+        alert.initModality(Modality.APPLICATION_MODAL);
+        alert.showAndWait();
+    }
+
+
+
 
     private String renderDisplay(BookEntry2 entry) {
         return entry.title + " — " + entry.author + " (" + entry.quantity + " Copies)";

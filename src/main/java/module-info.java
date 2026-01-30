@@ -22,6 +22,10 @@ module com.ngong.librasoftware {
     requires org.json;
     requires java.net.http;
     requires java.compiler;
+    requires webcam.capture;
+    requires com.google.zxing;
+    requires com.google.zxing.javase;
+    requires com.google.gson;
 //    requires epublib.core;
 //    requires eu.hansolo.toolboxfx;
 //    requires eu.hansolo.tilesfx;
